@@ -5,7 +5,7 @@ from groq import Groq
 try:
     client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 except:
-    st.error("Kasa anahtarı (Secret) hatalı!")
+    st.error("Kasa anahtarı (Secret) hatalı veya bulunamadı!")
 
 st.set_page_config(page_title="Yapay Zeka Analiz", page_icon="🚀")
 st.title("🚀 Akıllı Ürün Analiz Motoru")
@@ -16,9 +16,10 @@ if st.button("Hemen Strateji Üret"):
     if user_input:
         with st.spinner('Yapay Zeka derinlemesine inceliyor...'):
             try:
+                # Modeli güncelledik: llama-3.3-70b-versatile
                 chat_completion = client.chat.completions.create(
                     messages=[{"role": "user", "content": f"Şu yorumları analiz et: {user_input}. Bana Türkçe olarak 1. Memnuniyet %'si, 2. En büyük sorun, 3. Satış artırıcı tavsiye ver."}],
-                    model="llama3-8b-8192",
+                    model="llama-3.3-70b-versatile",
                 )
                 st.success("Analiz Tamamlandı!")
                 st.markdown(chat_completion.choices[0].message.content)
