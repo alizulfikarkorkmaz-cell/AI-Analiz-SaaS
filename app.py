@@ -2,39 +2,53 @@ import streamlit as st
 from groq import Groq
 from datetime import datetime
 
-# --- GÜVENLİK ---
+# --- GÜVENLİK VE API BAĞLANTISI ---
 try:
     client = Groq(api_key=st.secrets["GROQ_API_KEY"])
-except:
-    st.error("API Anahtarı bulunamadı!")
+except Exception as e:
+    st.error("Sistem hatası: API anahtarı yüklenemedi. Lütfen yönetici ile iletişime geçin.")
 
-st.set_page_config(page_title="AI İş Stratejisti", page_icon="📈")
+# Sayfa Ayarları (Google Play Hazırlık Modu)
+st.set_page_config(page_title="AI Pro Analiz & Strateji", page_icon="📈", layout="centered")
 
-# --- SIDEBAR ---
+# --- KRİTİK YASAL ZIRH (SOL PANEL - SIDEBAR) ---
 with st.sidebar:
-    st.title("🛡️ Yasal Uyarı")
-    st.error("Bu raporlar yapay zeka çıktısıdır. Kesinlikle yatırım tavsiyesi değildir.")
+    st.image("https://cdn-icons-png.flaticon.com/512/2092/2092663.png", width=80)
+    st.title("🛡️ Yasal Bilgilendirme")
+    st.error("⚠️ **SORUMLULUK REDDİ:**")
+    st.write("""
+    Bu platform tarafından üretilen tüm analiz ve raporlar **yapay zeka ürünüdür**. 
+    Kesinlikle yatırım tavsiyesi niteliği taşımaz. Verilen stratejilerin uygulanması sonucu 
+    oluşabilecek maddi veya manevi zararlardan yazılım sahibi sorumlu tutulamaz. 
+    Ticari kararların sorumluluğu tamamen kullanıcıya aittir.
+    """)
     st.write("---")
-    st.info("Shopier Sipariş No ile destek alabilirsiniz.")
+    st.info("📩 **Destek:** Sorularınız veya ödeme hataları için lütfen sipariş numaranızla birlikte bize ulaşın.")
+    st.caption("Sürüm: v1.0.8 VIP - SaaS Ready")
 
-st.title("🚀 Üretici İçin AI Strateji Motoru")
-st.subheader("Veri Odaklı Müşteri ve Üretim Analizi")
+# --- ANA EKRAN ---
+st.title("📈 Profesyonel AI Strateji Motoru")
+st.markdown("##### Müşteri Geri Bildirimlerini Veri Odaklı İş Planına Dönüştürün")
 
-user_input = st.text_area("Yorumları buraya yapıştırın:", height=150, placeholder="Müşteri deneyimlerini buraya ekleyin...")
+# Veri Giriş Alanı
+user_input = st.text_area("Analiz edilecek yorumları buraya yapıştırın (Max 5000 Karakter):", 
+                          height=200, 
+                          placeholder="Örn: Chanel, YSL veya Benefit ürünleri hakkındaki müşteri deneyimlerini buraya ekleyin...")
 
 col1, col2 = st.columns(2)
 
 with col1:
     if st.button("🔍 Ücretsiz Detaylı Analiz"):
         if user_input:
-            with st.spinner('Veriler işleniyor...'):
-                # ÜCRETSİZ AMA DETAYLI ANALİZ PROMPT'U
+            with st.spinner('Yapay zeka derin analiz yapıyor...'):
+                # ÜCRETSİZ AMA "VAY BE" DEDİRTEN PROMPT
                 free_prompt = f"""
-                Aşağıdaki yorumları analiz et ve şu formatta bir özet çıkar:
-                1. GENEL MEMNUNİYET SKORU: (0-100 arası bir puan ver)
-                2. DUYGU ANALİZİ: (Pozitif, Negatif veya Karışık olarak belirt)
-                3. ÖZET: (Müşterinin ana şikayeti nedir?)
-                4. ÜRETİCİYE KRİTİK NOT: (Üreticiye hemen yapması gereken 2 tavsiye ver)
+                Aşağıdaki müşteri yorumlarını analiz et ve şu formatta profesyonel bir özet çıkar:
+                
+                1. GENEL MEMNUNİYET SKORU: (0 ile 100 arası bir puan ver)
+                2. DUYGU ANALİZİ: (Pozitif, Negatif veya Karışık)
+                3. KRİTİK ŞİKAYET ÖZETİ: (Müşterinin canını en çok sıkan teknik sorun nedir?)
+                4. ÜRETİCİYE ACİL TEKNİK TAVSİYE: (Üreticiye hemen yapması gereken 2 somut öneri ver)
                 
                 Yorumlar: {user_input}
                 """
@@ -45,46 +59,76 @@ with col1:
                 st.success("📊 Ücretsiz Analiz Sonucu")
                 st.markdown(res.choices[0].message.content)
                 st.write("---")
-                st.caption("Daha derin teknik analiz ve 5 sayfalık çözüm planı için VIP raporu tercih edin.")
+                st.caption("Not: Bu bir ön izlemedir. 5 sayfalık teknik rapor için VIP panele geçin.")
         else:
-            st.warning("Lütfen veri girin.")
+            st.warning("Lütfen önce analiz edilecek yorumları girin.")
 
 with col2:
-    st.link_button("💎 5 Sayfa VIP Teknik Rapor", "https://www.shopier.com/SAYFA_LINKIN")
-    st.caption("Mühendislik ve Ar-Ge çözümleri içeren tam rapor.")
+    # Shopier linkin gelene kadar burası beklemede
+    st.link_button("💎 VIP: 5 Sayfa Teknik Rapor", "https://www.shopier.com/SAYFA_LINKIN_GELDIGINDE_BURAYI_DEGISTIR")
+    st.caption("💳 Fiyat: 50 TL (KDV Dahil)")
+    st.info("Üreticiye yönelik Ar-Ge, ambalaj ve pazarlama çözümleri içerir.")
 
 st.write("---")
 
-# --- VIP PANEL ---
-st.subheader("🔑 VIP Rapor Kilidini Aç")
-order_no = st.text_input("Shopier Sipariş No:")
+# --- ÖDEME DOĞRULAMA VE VIP RAPOR ALANI ---
+st.subheader("🔑 VIP Rapor Üretim Paneli")
+st.write("Ödeme sonrası Shopier'den gelen **Sipariş Numarasını** aşağıya girin.")
+
+order_no = st.text_input("Sipariş No:", placeholder="Örn: 98765432")
 
 if order_no and len(order_no) >= 8:
-    st.success(f"Sipariş No: {order_no} onaylandı.")
-    if st.checkbox("İadesiz dijital içeriği ve yasal şartları kabul ediyorum."):
-        if st.button("🚀 5 Sayfalık Teknik Raporu Üret"):
-            with st.spinner('Üreticiye özel strateji dosyası hazırlanıyor...'):
-                tarih = datetime.now().strftime("%d/%m/%Y")
-                pro_prompt = f"""
-                Müşteri yorumlarını analiz et ve üretici için 5 SAYFALIK detaylı bir strateji yaz.
-                Sipariş No: {order_no} | Tarih: {tarih}
-                
-                İçerik Şunları Kapsasın:
-                1. Üretim ve Formülasyon Hataları: (Kuruma, kırılma vb. teknik çözümler)
-                2. Fiyat/Performans Mühendisliği: (Pazar konumlandırma stratejisi)
-                3. Rakip Analizi: (Lüks vs. Dermokozmetik savaşı)
-                4. Ar-Ge ve Ambalaj İnovasyonu: (Vakum, presleme, materyal kalitesi)
-                5. 12 Aylık Finansal ve Operasyonel Yol Haritası.
-                
-                Yorumlar: {user_input}
-                """
-                full_report = client.chat.completions.create(
-                    messages=[{"role": "user", "content": pro_prompt}],
-                    model="llama-3.3-70b-versatile",
-                )
-                st.markdown("### 📄 ÜRETİCİYE ÖZEL VIP STRATEJİ RAPORU")
-                st.markdown(full_report.choices[0].message.content)
-                st.download_button("📂 Raporu İndir (.txt)", full_report.choices[0].message.content, file_name=f"Vip_Strateji_{order_no}.txt")
+    st.success(f"✅ Sipariş No: {order_no} doğrulandı. Rapor üretimi için onay bekliyor.")
+    
+    # KESİN ONAY KUTUSU (Yasal Koruma - Önceki koddan gelen zorunlu alan)
+    accept_terms = st.checkbox("Üretilen raporun bir yapay zeka çıktısı olduğunu, iadesinin bulunmadığını ve tüm sorumluluğu üstlendiğimi kabul ediyorum.")
+    
+    if accept_terms:
+        if st.button("🚀 5 Sayfalık Profesyonel Teknik Raporu Üret"):
+            if user_input:
+                with st.spinner('Mühendislik ve Ar-Ge çözümleri içeren 5 sayfalık dev rapor hazırlanıyor...'):
+                    tarih = datetime.now().strftime("%d/%m/%Y")
+                    
+                    # VIP PROMPT - ÜRETİCİYE TOKAT GİBİ TAVSİYELER
+                    pro_prompt = f"""
+                    Sen profesyonel bir iş danışmanı ve ürün mühendisisin. 
+                    Aşağıdaki müşteri yorumlarını al ve üretici firma için 5 SAYFA uzunluğunda dev bir rapor yaz.
+                    
+                    **ÖNEMLİ YASAL UYARI:** BU RAPOR YAPAY ZEKA ÇIKTISIDIR VE TİCARİ SORUMLULUK KULLANICIYA AİTTİR.
+                    
+                    Sipariş No: {order_no} | Tarih: {tarih}
+                    
+                    Bölümler:
+                    1. ÜRETİM VE FORMÜLASYON HATALARI: (Kuruma, kırılma, pigmentasyon gibi teknik sorunlara mühendislik çözümleri)
+                    2. FİYATLANDIRMA VE ALGI YÖNETİMİ: (300 TL+ bandındaki ürünlerin hayal kırıklığı yaratmaması için stratejiler)
+                    3. RAKİP ANALİZİ: (Lüks markalar, dermokozmetik markalarına karşı pazar payını nasıl korur?)
+                    4. AR-GE VE AMBALAJ İNOVASYONU: (Vakum sistemleri, presleme basıncı ve malzeme kalitesi üzerine somut öneriler)
+                    5. 12 AYLIK MÜŞTERİ GERİ KAZANIM VE BÜYÜME PLANI: (Sadakat programları ve geri dönüş stratejileri)
+                    
+                    Müşteri Verileri: {user_input}
+                    
+                    Lütfen her bölümü son derece detaylı, teknik terimler içeren ve üreticiyi harekete geçirecek profesyonel bir dille yaz.
+                    """
+                    
+                    full_report = client.chat.completions.create(
+                        messages=[{"role": "user", "content": pro_prompt}],
+                        model="llama-3.3-70b-versatile",
+                    )
+                    
+                    st.markdown("### 📄 ÜRETİCİYE ÖZEL VIP STRATEJİ VE ÇÖZÜM DOSYASI")
+                    st.markdown(full_report.choices[0].message.content)
+                    
+                    # İNDİRME BUTONU
+                    st.download_button(
+                        label="📂 Raporu Bilgisayarına İndir (.txt)",
+                        data=full_report.choices[0].message.content,
+                        file_name=f"VIP_Teknik_Rapor_{order_no}.txt",
+                        mime="text/plain"
+                    )
+            else:
+                st.error("⚠️ Hata: Rapor üretmek için yukarıdaki alana müşteri yorumlarını girmiş olmanız gerekir.")
+else:
+    st.caption("💡 Not: Geçerli bir sipariş numarası girdiğinizde rapor üretim paneli ve onay kutusu aktifleşecektir.")
 
 st.write("---")
-st.caption("© 2026 AI Analiz SaaS | Güvenli Ödeme Altyapısı: Shopier")
+st.caption("© 2026 AI Analiz Yazılım SaaS | Güvenli Ödeme Sistemi: Shopier")
