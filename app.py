@@ -1,67 +1,69 @@
 import streamlit as st
 from groq import Groq
 
-# Kasadaki anahtarı kullanıyoruz
+# Güvenli Anahtar Girişi
 try:
     client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 except:
-    st.error("Lütfen Streamlit Secrets kısmına GROQ_API_KEY ekleyin.")
+    st.error("Sistem anahtarı yüklenemedi. Lütfen yönetici ile iletişime geçin.")
 
-st.set_page_config(page_title="AI Strateji Merkezi", page_icon="📈")
+st.set_page_config(page_title="AI Pro Strateji", page_icon="📈", layout="centered")
 
-# --- SOL PANEL (BİLGİ VE YASAL UYARI) ---
+# --- SOL PANEL (PROFESYONEL GÖRÜNÜM) ---
 with st.sidebar:
-    st.title("🛡️ Güvenlik & Yasal")
-    st.info("İşlemleriniz SSL şifreleme ile korunmaktadır.")
+    st.image("https://cdn-icons-png.flaticon.com/512/2092/2092663.png", width=100) # Temsili Logo
+    st.title("Kurumsal Destek")
+    st.info("Bu uygulama 256-bit SSL ile korunmaktadır.")
     st.write("---")
-    st.warning("**YASAL UYARI:** Bu platformda sunulan tüm analiz ve raporlar yapay zeka tarafından üretilmiştir. Yatırım tavsiyesi veya kesin ticari garanti içermez. Oluşabilecek ticari risklerden kullanıcı sorumludur.")
+    st.error("⚠️ **YASAL SORUMLULUK SINIRI:** Bu raporlar yapay zeka ürünüdür. Yatırım tavsiyesi değildir. Tüm kararlar kullanıcının sorumluluğundadır.")
     st.write("---")
-    st.subheader("İletişim")
-    st.write("Destek hattı: [WhatsApp Destek]")
+    st.markdown("[Gizlilik Politikası](https://seninsiten.com/gizlilik)") # Örnek link
 
-# --- ANA SAYFA ---
-st.title("🚀 Profesyonel Ürün Analiz & Strateji Motoru")
-st.write("Müşteri yorumlarını girin, yapay zeka saniyeler içinde büyüme planınızı çıkarsın.")
+# --- ANA EKRAN ---
+st.title("📈 Profesyonel Ürün Analiz Motoru")
+st.subheader("Yorumlardan 5 Sayfalık Büyüme Stratejisi Üretin")
 
-user_input = st.text_area("Yorumları buraya yapıştırın:", height=150, max_chars=5000)
+user_input = st.text_area("Yorumları bu alana yapıştırın:", height=200, max_chars=5000, placeholder="Müşterilerinizin geri bildirimlerini buraya ekleyin...")
 
-if st.button("Ücretsiz Özet Analiz"):
-    if user_input:
-        with st.spinner('Yapay zeka verileri okuyor...'):
-            try:
-                # 1. ADIM: KISA ÖZET
+col1, col2 = st.columns(2)
+
+with col1:
+    if st.button("🔍 Ücretsiz Özet Çıkar"):
+        if user_input:
+            with st.spinner('Yapay Zeka özetliyor...'):
                 res = client.chat.completions.create(
-                    messages=[{"role": "user", "content": f"Şu yorumları kısaca özetle: {user_input}"}],
+                    messages=[{"role": "user", "content": f"Aşağıdaki yorumları profesyonel bir dille özetle: {user_input}"}],
                     model="llama-3.3-70b-versatile",
                 )
-                st.success("Özet Analiz Tamamlandı")
-                st.write(res.choices[0].message.content)
-                
-                st.write("---")
-                st.subheader("💎 Tam Kapsamlı 5 Sayfalık Strateji Raporu")
-                st.write("Derin analiz ve yol haritası için ödemenizi tamamlayıp aşağıdaki onayı veriniz.")
-                
-                # Shopier Linkin
-                st.link_button("💳 Ödemeyi Yap (50 TL)", "https://www.shopier.com/SAYFA_LINKIN")
-                
-                # Müşteri Onayı ve Yasal Beyan
-                if st.checkbox("✅ Ödemeyi tamamladım. Raporun yapay zeka tarafından üretildiğini ve ticari sorumluluğun bana ait olduğunu kabul ediyorum."):
-                    with st.spinner('5 Sayfalık Profesyonel Rapor Hazırlanıyor...'):
-                        full_report = client.chat.completions.create(
-                            messages=[{
-                                "role": "user", 
-                                "content": f"ÖNEMLİ: Raporun en başına 'BU BİR YAPAY ZEKA ANALİZİDİR, KESİN TAVSİYE İÇERMEZ' notu ekleyerek, şu yorumlara göre 5 sayfalık dev bir strateji raporu yaz: {user_input}"
-                            }],
-                            model="llama-3.3-70b-versatile",
-                        )
-                        st.markdown("### 📄 Profesyonel Strateji Raporu")
-                        st.markdown(full_report.choices[0].message.content)
-                        st.download_button("📂 Raporu İndir", full_report.choices[0].message.content, file_name="strateji_raporu.txt")
-            except Exception as e:
-                st.error(f"Sistemde geçici bir sorun oluştu. Lütfen tekrar deneyin.")
-    else:
-        st.warning("Analiz için veri girilmelidir.")
+                st.success("Ücretsiz Özet Hazır")
+                st.info(res.choices[0].message.content)
+        else:
+            st.warning("Lütfen veri girişi yapın.")
 
-# Sayfa sonu sabit yasal uyarı
+with col2:
+    # VIP Rapor Butonu
+    st.link_button("💎 5 Sayfalık VIP Rapor Al (50 TL)", "https://www.shopier.com/SAYFA_LINKIN")
+
 st.write("---")
-st.caption("© 2026 AI Analiz Yazılım. Tüm hakları saklıdır. Bu uygulama kullanıcıya 'olduğu gibi' sunulur; sunulan içeriklerin doğruluğu veya eksiksizliği konusunda herhangi bir yasal taahhüt verilmez.")
+
+# VIP RAPOR ÜRETME ALANI (Ödeme sonrası onay ile)
+st.subheader("💎 VIP Rapor Paneli")
+paid_check = st.checkbox("Ödememi tamamladım, 5 sayfalık raporu oluşturmak istiyorum.")
+
+if paid_check:
+    if user_input:
+        with st.spinner('🚀 5 Sayfalık Profesyonel Rapor Hazırlanıyor... Bu işlem 40 saniye sürebilir.'):
+            try:
+                full_report = client.chat.completions.create(
+                    messages=[{"role": "user", "content": f"Şu yorumlar için 5 sayfalık çok detaylı, bölümlere ayrılmış, profesyonel bir iş stratejisi yaz. En başa yasal uyarıyı koy: {user_input}"}],
+                    model="llama-3.3-70b-versatile",
+                )
+                st.markdown(full_report.choices[0].message.content)
+                st.download_button("📂 Raporu İndir (PDF/TXT)", full_report.choices[0].message.content, file_name="VIP_Strateji_Raporu.txt")
+            except Exception as e:
+                st.error("Sistem yoğunluğu nedeniyle rapor üretilemedi. Lütfen tekrar deneyin.")
+    else:
+        st.warning("Rapor üretmek için önce yukarıdaki alana yorumları girmelisiniz.")
+
+st.write("---")
+st.caption("© 2026 AI Analiz Yazılım A.Ş. | Google Play Store Sürümü v1.0")
