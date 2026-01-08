@@ -1,51 +1,55 @@
 import streamlit as st
 from groq import Groq
 
-# Kasa anahtarı
-try:
-    client = Groq(api_key=st.secrets["GROQ_API_KEY"])
-except:
-    st.error("Kasa anahtarı eksik!")
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-st.set_page_config(page_title="Pro Analiz SaaS", page_icon="💰")
+st.set_page_config(page_title="AI Strateji Merkezi", page_icon="📈")
 
-# --- SOL PANEL (SIDEBAR) ---
-with st.sidebar:
-    st.title("Yardım & Destek")
-    st.info("Teknik bir sorun yaşarsanız [WhatsApp] üzerinden ulaşabilirsiniz.")
-    
-    st.write("---")
-    st.subheader("💎 VIP Hizmet")
-    st.write("Sadece özetle yetinmeyin. Rakip analizi ve 50 sayfalık strateji raporu için:")
-    # BURAYA KENDİ SHOPIER LİNKİNİ YAZ
-    st.link_button("VIP Rapor Satın Al (50 TL)", "https://www.shopier.com/SAYFA_LINKIN")
-    
-    st.write("---")
-    st.caption("© 2024 AI Analiz Yazılım")
+st.title("🚀 Profesyonel Ürün Analiz & 5 Sayfalık Strateji")
 
-# --- ANA SAYFA ---
-st.title("🚀 Akıllı Ürün Analiz & Strateji Motoru")
+user_input = st.text_area("Yorumları buraya yapıştırın:", height=150, max_chars=5000)
 
-user_input = st.text_area("Analiz edilecek yorumları buraya girin:", height=200)
-
-if st.button("Hemen Ücretsiz Analiz Et"):
+if st.button("Ücretsiz Analiz Et"):
     if user_input:
-        with st.spinner('Yapay Zeka rapor hazırlıyor...'):
-            try:
-                chat_completion = client.chat.completions.create(
-                    messages=[{"role": "user", "content": f"Şu yorumları analiz et: {user_input}. Türkçe olarak 1. Memnuniyet, 2. Şikayetler, 3. Tavsiye yaz."}],
-                    model="llama-3.3-70b-versatile",
-                )
-                st.success("Ücretsiz Özet Analiz Tamamlandı!")
-                st.markdown(chat_completion.choices[0].message.content)
-                
-                # Analiz bitince çıkan ekstra teklif
-                st.warning("⚠️ Bu sadece bir özetti. Tam kapsamlı profesyonel rapor için yukarıdaki 'VIP Rapor' butonunu kullanabilirsiniz.")
-                
-            except Exception as e:
-                st.error("Bir hata oluştu, lütfen tekrar deneyin.")
-    else:
-        st.warning("Lütfen önce yorum yapıştırın.")
+        with st.spinner('Kısa özet hazırlanıyor...'):
+            # 1. ADIM: KISA ÖZET
+            res = client.chat.completions.create(
+                messages=[{"role": "user", "content": f"Şu yorumları kısaca özetle: {user_input}"}],
+                model="llama-3.3-70b-versatile",
+            )
+            st.success("Özet Analiz Tamam")
+            st.write(res.choices[0].message.content)
+            
+            st.write("---")
+            st.subheader("💎 Tam Kapsamlı 5 Sayfalık Strateji Raporu")
+            st.write("Bu rapor; rakip analizi, operasyonel iyileştirme ve 12 aylık yol haritası içerir.")
+            
+            # Ödeme Simülasyonu veya Linki
+            st.link_button("Ödemeyi Yap ve Raporu Aç (50 TL)", "https://www.shopier.com/SAYFA_LINKIN")
+            
+            # TEST İÇİN: Ödeme yapılmış gibi raporu açan bir buton (Geliştirme aşaması)
+            if st.checkbox("Ödeme yaptım, raporu hazırla"):
+                with st.spinner('5 Sayfalık Dev Rapor Hazırlanıyor... (Bu işlem 30 saniye sürebilir)'):
+                    # 2. ADIM: UZUN VE DETAYLI RAPOR
+                    full_report = client.chat.completions.create(
+                        messages=[{
+                            "role": "user", 
+                            "content": f"""
+                            Aşağıdaki yorumları kullanarak 5 sayfa uzunluğunda profesyonel bir ticari strateji raporu yaz. 
+                            Şu bölümler mutlaka olsun ve her bölümü çok detaylandır:
+                            1. Müşteri Psikolojisi ve Segmentasyon Analizi (1 Sayfa)
+                            2. Ürün Geliştirme ve İade Azaltma Reçetesi (1 Sayfa)
+                            3. Rakip Karşısında Konumlandırma Stratejisi (1 Sayfa)
+                            4. Pazarlama ve Reklam Metni Önerileri (1 Sayfa)
+                            5. 12 Aylık Finansal Büyüme ve Operasyon Planı (1 Sayfa)
+                            
+                            Yorumlar: {user_input}
+                            """
+                        }],
+                        model="llama-3.3-70b-versatile",
+                    )
+                    st.markdown(full_report.choices[0].message.content)
+                    st.download_button("Raporu PDF/Metin Olarak İndir", full_report.choices[0].message.content)
 
-st.write("---")
-st.caption("Uyarı: Yapay zeka hatalı sonuçlar üretebilir.")
+    else:
+        st.warning("Lütfen veri girin.")
