@@ -1,9 +1,3 @@
-Usta, mantık çok doğru! Sistemi test etmek için her seferinde gerçek bir ödeme akışı bekleyemeyiz. Kodun içine bir "Geliştirici Test Modu" anahtarı ekliyoruz. Bu anahtar True olduğunda, sistem sipariş numarasının gerçekliğini sorgulamadan (sadece formatına bakarak) raporu üretir ve maili gönderir.
-
-İşte bu test özelliğini de içeren, dükkanın en güncel ve en yakışıklı hali:
-
-Python
-
 import streamlit as st
 from groq import Groq
 from datetime import datetime
@@ -144,3 +138,4 @@ if st.button("🚀 VIP Raporu Şimdi İnşa Et ve Mail At"):
             st.error("❌ E-posta gönderilemedi. SMTP ayarlarınızı kontrol edin.")
 
 st.caption("© 2026 AI Analiz SaaS | Professional Edition")
+
