@@ -5,170 +5,213 @@ import re
 import time
 import io
 import smtplib
+import json
+import logging
 from email.message import EmailMessage
-
-# PDF İçin Gerekli Kütüphaneler
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import simpleSplit
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle
 
-# =========================
-# SAYFA AYARLARI
-# =========================
+# =================================================================
+# 1. KURUMSAL LOGLAMA VE YAPILANDIRMA
+# =================================================================
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 st.set_page_config(
-    page_title="AI Pro Analiz & Strateji",
-    page_icon="📈",
-    layout="centered"
+    page_title="AI STRATEGY PRO | SUPREME",
+    page_icon="👑",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# =========================
-# API BAĞLANTISI
-# =========================
-try:
-    client = Groq(api_key=st.secrets["GROQ_API_KEY"])
-except Exception:
-    st.error("⚠️ API Hatası! Lütfen Secrets ayarlarınızı kontrol edin.")
-    st.stop()
+# =================================================================
+# 2. KARAKTER KORUMA VE GÜVENLİK PROTOKOLÜ
+# =================================================================
+class TextEngine:
+    @staticmethod
+    def force_tr_compatibility(text):
+        """PDF'deki 'kara kutucuk' (glyph) hatasını imha eder."""
+        chars = {
+            'İ': 'I', 'ı': 'i', 'Ş': 'S', 'ş': 's', 'Ğ': 'G', 'ğ': 'g',
+            'ü': 'u', 'Ü': 'U', 'ö': 'o', 'Ö': 'O', 'ç': 'c', 'Ç': 'C',
+            'â': 'a', 'î': 'i', 'û': 'u'
+        }
+        for k, v in chars.items():
+            text = text.replace(k, v)
+        return text
 
-# =========================
-# GÜVENLİK VE TEMİZLİK FİLTRESİ
-# =========================
-def clean_text_for_output(text: str) -> str:
-    """Metni temizlerken Türkçe karakterleri ve anlamlı yapıyı korur."""
-    # Sadece zararlı olabilecek kontrol karakterlerini temizleyelim
-    text = text.replace('\uf0b7', '-') # Liste işaretleri için düzeltme
-    # Gereksiz boşlukları temizle
-    text = re.sub(r"\s{2,}", " ", text)
-    return text.strip()
+    @staticmethod
+    def sanitize(text):
+        """Veriyi zararlı karakterlerden arındırır."""
+        return re.sub(r"[^a-zA-Z0-9.,;:!?()/%&\-\n ]", "", text)
 
-# =========================
-# PDF OLUŞTURUCU (TÜRKÇE DESTEKLİ)
-# =========================
-def create_pdf(report_text, order_no, tarih):
-    buffer = io.BytesIO()
-    c = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
-    
-    # NOT: Türkçe karakterler için sisteminizde bir .ttf dosyası olmalı.
-    # Eğer sunucuda font yoksa 'Helvetica' yerine 'Courier' denenebilir ama 
-    # en kesin çözüm bir font dosyasını projeye dahil etmektir.
-    
-    c.setFont("Helvetica-Bold", 16)
-    c.drawCentredString(width/2, height-50, "VIP STRATEJI VE TEKNIK ANALIZ RAPORU")
-    
-    c.setFont("Helvetica", 10)
-    c.drawString(50, height-80, f"Siparis No: {order_no} | Tarih: {tarih}")
-    
-    y = height - 120
-    max_width = width - 100
-    
-    # Metni satırlara böl ve yazdır
-    c.setFont("Helvetica", 11)
-    for line in report_text.split("\n"):
-        # ReportLab Helvetica'da Türkçe karakter bazen sorun çıkarır, 
-        # karakterleri standart muadilleriyle değiştiriyoruz (Garanti çözüm)
-        line = line.replace('İ', 'I').replace('ı', 'i').replace('Ğ', 'G').replace('ğ', 'g').replace('Ş', 'S').replace('ş', 's').replace('Ö', 'O').replace('ö', 'o').replace('Ü', 'U').replace('ü', 'u')
+# =================================================================
+# 3. PROFESYONEL PDF GENERATOR (ARCHITECT)
+# =================================================================
+class ReportArchitect:
+    def __init__(self, order_no):
+        self.order_no = order_no
+        self.tarih = datetime.now().strftime("%d/%m/%Y")
+        self.buffer = io.BytesIO()
+
+    def _header_footer(self, canvas, doc):
+        canvas.saveState()
+        canvas.setFont('Helvetica-Bold', 9)
+        canvas.setFillColor(colors.grey)
+        canvas.drawString(inch, A4[1] - 0.5 * inch, "VIP STRATEJI RAPORU - GIZLIDIR")
+        canvas.drawRightString(A4[0] - inch, A4[1] - 0.5 * inch, f"Siparis: {self.order_no} | Sayfa {doc.page}")
         
-        wrapped_lines = simpleSplit(line, "Helvetica", 11, max_width)
-        for wrapped_line in wrapped_lines:
-            if y < 50:
-                c.showPage()
-                y = height - 50
-                c.setFont("Helvetica", 11)
-            c.drawString(50, y, wrapped_line.strip())
-            y -= 15
-        y -= 5 # Paragraf arası boşluk
+        canvas.setStrokeColor(colors.dodgerblue)
+        canvas.setLineWidth(1)
+        canvas.line(inch, A4[1] - 0.6 * inch, A4[0] - inch, A4[1] - 0.6 * inch)
+        canvas.restoreState()
+
+    def build(self, content_dict):
+        doc = SimpleDocTemplate(
+            self.buffer,
+            pagesize=A4,
+            rightMargin=72, leftMargin=72,
+            topMargin=72, bottomMargin=72
+        )
         
-    c.save()
-    buffer.seek(0)
-    return buffer
+        styles = getSampleStyleSheet()
+        styles.add(ParagraphStyle(name='SubTitle', fontSize=14, textColor=colors.dodgerblue, spaceAfter=12))
+        
+        story = []
+        
+        # Kapak Sayfası
+        story.append(Spacer(1, 2 * inch))
+        story.append(Paragraph(f"<font size='32' color='dodgerblue'>VIP ANALIZ RAPORU</font>", styles['Title']))
+        story.append(Spacer(1, 0.5 * inch))
+        story.append(Paragraph(f"Siparis No: {self.order_no}", styles['Normal']))
+        story.append(Paragraph(f"Tarih: {self.tarih}", styles['Normal']))
+        story.append(PageBreak())
+        
+        # İçerik
+        for title, body in content_dict.items():
+            story.append(Paragraph(TextEngine.force_tr_compatibility(title), styles['SubTitle']))
+            story.append(Spacer(1, 0.2 * inch))
+            
+            clean_body = TextEngine.force_tr_compatibility(body)
+            paragraphs = clean_body.split('\n')
+            for p in paragraphs:
+                if p.strip():
+                    story.append(Paragraph(p, styles['Normal']))
+                    story.append(Spacer(1, 0.1 * inch))
+            story.append(PageBreak())
 
-# =========================
-# GELİŞMİŞ BÖLÜM ÜRETİCİ
-# =========================
-def generate_section(title, task, user_data, order_no, tarih):
-    # Modelin sapıtmaması için sistem talimatı güçlendirildi
-    system_prompt = "Sen profesyonel bir iş analisti ve strateji uzmanısın. Yanıtlarını sadece Türkçe, akademik ve detaylı bir dille yazmalısın. Asla kısa cevap verme."
+        doc.build(story, onFirstPage=self._header_footer, onLaterPages=self._header_footer)
+        self.buffer.seek(0)
+        return self.buffer
+
+# =================================================================
+# 4. VIP AI CORE (LOGIC LAYER)
+# =================================================================
+def generate_supreme_content(user_data, order_no):
+    try:
+        client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+    except:
+        st.error("API Anahtarı Eksik!")
+        return None
+
+    modules = {
+        "MODÜL 1: MAKRO TEKNIK ANALIZ": "İşletmenin dijital ve fiziksel altyapısını mühendislik gözüyle analiz et.",
+        "MODÜL 2: FIYATLANDIRMA PSIKOLOJISI": "Pazarın %1'ine hitap edecek premium fiyatlandırma stratejisi kur.",
+        "MODÜL 3: RAKIP IMHA VE KONUMLAMA": "Rakiplerin zayıf noktalarını bul ve sektörde tekelleşme planı yaz.",
+        "MODÜL 4: 12 AYLIK BÜYÜME VE ROI": "Yatırımın geri dönüşünü ay ay hesapla ve aksiyon adımlarını belirle.",
+        "MODÜL 5: INOVASYON VE GELECEK": "5 yıl sonraki pazar değişimlerine bugünden hazırlık planı sun."
+    }
+
+    final_report = {}
+    pb = st.progress(0)
     
-    user_prompt = f"""
-    TALİMAT: Aşağıdaki verileri kullanarak '{title}' başlığı altında çok detaylı bir analiz yaz.
-    VERİLER: {user_data}
-    GÖREV DETAYI: {task}
-    KURALLAR: 
-    1. Teknik ve profesyonel bir dil kullan.
-    2. En az 5-6 uzun paragraf oluştur.
-    3. Sipariş No {order_no} referansıyla bağlamı koru.
-    4. Sadece metni döndür, giriş/çıkış konuşmaları yapma.
-    """
+    for i, (title, prompt) in enumerate(modules.items()):
+        st.write(f"🌀 {title} işleniyor...")
+        full_prompt = f"Sen bir CEO danışmanısın. {title} konusunda, şu verilere dayanarak 2000 kelimelik akademik rapor yaz: {user_data[:4000]}"
+        
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "Sen dünyanın en pahalı strateji danışmanısın. Sadece profesyonel Türkçe kullan. Detaylarda boğul, asla yüzeysel kalma."},
+                {"role": "user", "content": full_prompt}
+            ],
+            temperature=0.4
+        )
+        final_report[title] = response.choices[0].message.content
+        pb.progress((i + 1) / len(modules))
+        
+    return final_report
+
+# =================================================================
+# 5. UI - SIDEBAR VE GÖRSEL KATMAN
+# =================================================================
+with st.sidebar:
+    st.image("https://cdn-icons-png.flaticon.com/512/2092/2092663.png", width=150)
+    st.title("🛡️ Yasal Zırh & Protokol")
+    st.divider()
     
-    attempts = 0
-    while attempts < 2:
-        try:
-            res = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=0.5, # Daha tutarlı sonuçlar için düşürüldü
-                max_tokens=3500
-            )
-            content = clean_text_for_output(res.choices[0].message.content)
-            if len(content) > 200: # Kısa kalmadığından emin ol
-                return content
-        except Exception as e:
-            time.sleep(3)
-        attempts += 1
-    return f"{title} bölümü teknik bir aksaklık nedeniyle oluşturulamadı."
+    st.error("""
+    **⛔ YASAL UYARI:**
+    Bu raporlar yatırım tavsiyesi değildir. 
+    Yalnızca stratejik simülasyon ve analiz amacı taşır.
+    """)
+    
+    st.info("""
+    **💎 VIP SUPREME HAKLARI:**
+    - 10.000+ Kelime Raporlama
+    - Akademik Dil ve Üslup
+    - Sektörel ROI Haritası
+    - PDF ve Mail Entegrasyonu
+    """)
+    
+    st.markdown("---")
+    st.caption("Sürüm: 7.4.2 Supreme Platinum")
 
-# =========================
-# ANA EKRAN (Görsel Düzenlemeler)
-# =========================
-st.title("📈 AI Pro Strateji Motoru v2")
+# =================================================================
+# 6. ANA EKRAN VE AKIŞ
+# =================================================================
+st.title("👑 Professional AI Strategy Engine")
+st.write("SaaS ve İşletme Stratejilerinde Yapay Zeka Devrimi")
 
-user_input = st.text_area("Analiz edilecek verileri girin:", height=200, placeholder="Müşteri yorumları, satış verileri veya iş planı taslağı...")
+raw_input = st.text_area("Analiz Verilerini Girin:", height=300, placeholder="Veri, yorum, pazar bilgisi...")
 
-# (Buradaki hızlı analiz ve link bölümleri orijinal kodunuzla aynı kalabilir)
-# ... [Hızlı Analiz Butonları] ...
+c1, c2 = st.columns(2)
+with c1:
+    if st.button("🔍 Ücretsiz Analiz", use_container_width=True):
+        st.write("Hızlı analiz hazırlanıyor...") # Buraya kısa bir API çağrısı eklenebilir.
 
-st.write("---")
-st.subheader("💎 VIP Rapor Paneli")
-order_no = st.text_input("Shopier Sipariş No (8+ Hane):")
-email_input = st.text_input("Raporun Gönderileceği E-posta:")
-accept = st.checkbox("Analizin teknik nitelikte olduğunu onaylıyorum.")
+with c2:
+    st.link_button("💎 VIP Rapor Satın Al (Shopier)", "https://www.shopier.com/SAYFA_LINKIN", use_container_width=True, type="primary")
 
-if st.button("🚀 VIP Raporu Üret ve Mail Gönder"):
-    if not user_input or not order_no or not email_input or not accept:
-        st.error("Lütfen tüm alanları doldurun.")
+st.divider()
+st.subheader("🔑 VIP Erişim Paneli")
+
+v1, v2 = st.columns(2)
+with v1:
+    oid = st.text_input("Sipariş Numarası:")
+with v2:
+    mail = st.text_input("Gönderilecek E-posta:")
+
+confirm = st.checkbox("Raporun dijital nitelikte olduğunu ve iade edilemeyeceğini onaylıyorum.")
+
+if st.button("🚀 VIP STRATEJIYI BASLAT", use_container_width=True, type="primary"):
+    if not raw_input or not oid or not confirm:
+        st.error("Tüm alanları doldurmanız zorunludur!")
     else:
-        tarih = datetime.now().strftime("%d/%m/%Y")
-        
-        sections = [
-            ("MÜHENDİSLİK VE TEKNİK ANALİZ", "İşletme kusurları ve mühendislik tabanlı çözüm önerileri."),
-            ("STRATEJİK FİYATLANDIRMA", "Pazar konumlandırması ve premium fiyatlandırma stratejileri."),
-            ("SEKTÖREL TRENDLER", "Gelecek 5 yıl için sektörel öngörüler ve dijital dönüşüm."),
-            ("AR-GE VE İNOVASYON", "Ürün geliştirme ve inovasyon odaklı büyüme planı."),
-            ("12 AYLIK YOL HARİTASI", "Aylık bazda ROI odaklı aksiyon planı.")
-        ]
-        
-        full_report = ""
-        progress_bar = st.progress(0)
-        status_text = st.empty()
-        
-        for i, (title, task) in enumerate(sections):
-            status_text.text(f"⏳ Bölüm {i+1}/5 üretiliyor: {title}...")
-            section_content = generate_section(title, task, user_input[:4000], order_no, tarih)
-            full_report += f"\n\n--- {title} ---\n\n{section_content}"
-            progress_bar.progress((i + 1) / len(sections))
-        
-        status_text.text("✅ Analiz tamamlandı! PDF hazırlanıyor...")
-        
-        # PDF ve Mail İşlemleri
-        pdf_buf = create_pdf(full_report, order_no, tarih)
-        
-        # [send_email fonksiyonunuzu burada çağırın]
-        # st.download_button(...)
-        st.success("İşlem Başarılı! Raporunuz hazırlandı.")
-        st.download_button("📂 PDF Raporu İndir", pdf_buf, file_name=f"VIP_Rapor_{order_no}.pdf")
+        with st.status("🚀 Rapor Üretiliyor...", expanded=True) as status:
+            content = generate_supreme_content(raw_input, oid)
+            if content:
+                status.update(label="📄 PDF Mimarisi Oluşturuluyor...", state="running")
+                architect = ReportArchitect(oid)
+                pdf_buf = architect.build(content)
+                status.update(label="✅ Her Şey Hazır!", state="complete")
+                
+                st.success("Analiz Başarıyla Tamamlandı!")
+                st.download_button("📂 VIP PDF RAPORUNU INDIR", pdf_buf, f"VIP_Strategy_{oid}.pdf", "application/pdf")
+
+st.caption("© 2026 High-End AI Corporate Solutions")
