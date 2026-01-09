@@ -5,19 +5,19 @@ import re
 import time
 
 # =================================================================
-# 1. KURUMSAL YAPI VE GEMINI YAPILANDIRMASI (DÜZELTİLDİ)
+# 1. KURUMSAL YAPI VE GEMINI YAPILANDIRMASI (KESİN ÇÖZÜM)
 # =================================================================
 st.set_page_config(page_title="AI Ultra Strateji: Master Gold", page_icon="🏆", layout="wide")
 
-# Secrets kontrolü
 if "GEMINI_API_KEY" not in st.secrets:
     st.error("Sistem hatası: 'GEMINI_API_KEY' bulunamadı! Lütfen secrets.toml dosyasını kontrol edin.")
     st.stop()
 
+# 404 HATASINI BİTİREN ÖZEL YAPILANDIRMA
 try:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    # 404 hatasını önlemek için spesifik model ismi kullanıyoruz
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    # Modeli direkt tam ismiyle çağırarak sürüm karmaşasını bitiriyoruz
+    model = genai.GenerativeModel(model_name='models/gemini-1.5-flash')
 except Exception as e:
     st.error(f"Bağlantı Hatası: {str(e)}")
     st.stop()
@@ -34,7 +34,7 @@ HIZMET_SOZLESMESI = """
 """
 
 # =================================================================
-# 3. ULTRA DİL VE GRAMER DENETİMİ (TDK Koruma)
+# 3. ULTRA DİL VE GRAMER DENETİMİ (TDK Koruma Sistemi)
 # =================================================================
 class GrammarPro:
     @staticmethod
@@ -42,7 +42,7 @@ class GrammarPro:
         # Gereksiz karakter temizliği
         text = re.sub(r'[^\x00-\x7FçğıöşüÇĞİÖŞÜİı\n\r\t .,;:!?()/%&\-+=*]+', '', text)
         
-        # Raporlardaki yaygın hataları düzelten sözlük
+        # Raporlardaki 'mekn', 'lezzetide' gibi hataları düzelten sözlük
         corrections = {
             r"\bmekn\b": "mekan", r"\bkğıt\b": "kağıt", r"\bakğt\b": "kağıt",
             r"\bherşey\b": "her şey", r"\bbirşey\b": "bir şey", r"\byada\b": "ya da",
@@ -56,14 +56,14 @@ class GrammarPro:
         return text.strip()
 
 # =================================================================
-# 4. DEV ANALİZ MOTORU (10.000 Kelime Hedefli - 5 Modül)
+# 4. DEV ANALİZ MOTORU (10.000 Kelime & TDK & CEO Protokolü)
 # =================================================================
 def generate_master_report(user_data, order_no):
     modules = {
         "📊 MODÜL 1: OPERASYONEL ANALİZ VE TEKNİK KUSUR TESPİTİ": "Kök neden analizi ile altyapıdaki 15 kusuru mühendislik diliyle anlat.",
         "💸 MODÜL 2: STRATEJİK FİYATLANDIRMA VE GELİR MİMARİSİ": "Premium algı ve psikolojik fiyatlandırma ile 10 strateji sun.",
         "🧪 MODÜL 3: ENDÜSTRİYEL AR-GE VE ÜRETİM İNOVASYONU": "Ürün kalitesini artıracak teknik AR-GE süreçlerini anlat.",
-        "🛡️ MODÜL 4: PAZAR DOMİNASYONU VE RAKİP İSTİHBARATI": "Sektör liderlerini devirecek saldırı planını hazırla.",
+        "🛡️ MODÜL 4: PAZAR DOMİNASYONU VE RAKİP İSTİHBARATI": "Sektör liderlerini devirecek 'Mavi Okyanus' saldırı planını hazırla.",
         "📈 MODÜL 5: 360 DERECE BÜYÜME VE 12 AYLIK ROI PROJEKSİYONU": "Gelecek 12 ayın her ayı için teknik iş planı ve KPI tablosu oluştur."
     }
 
@@ -74,12 +74,14 @@ def generate_master_report(user_data, order_no):
     status_msg = st.empty()
     
     for i, (title, instruction) in enumerate(modules.items()):
-        status_msg.warning(f"⏳ {title} örülüyor... Gemini & TDK Aktif.")
+        status_msg.warning(f"⏳ {title} örülüyor... Gemini & TDK Editörü Aktif.")
         
+        # Üretim kalitesini zirveye çıkaran talimat seti
         system_msg = f"""
         Sen dünyanın en kıdemli yönetim danışmanı ve bir TDK Profesörüsün.
         GÖREVİN: {title} konusunu en az 2000 kelime, ağır kurumsal, teknik ve akademik bir dille yazmak.
-        KURALLAR: 'mekan', 'kağıt' gibi kelimeleri doğru yaz. 'Her şey' ve 'ya da' ayrı olsun.
+        KURALLAR: 'mekan', 'kağıt', 'lezzeti de', 'bir şey' gibi TDK kurallarına %100 uyacaksın.
+        ÜSLUP: CEO seviyesinde teknik terimler kullan (ROI, KPI, Mavi Okyanus, Optimizasyon vb.).
         """
 
         try:
@@ -87,7 +89,7 @@ def generate_master_report(user_data, order_no):
             res = model.generate_content(full_prompt)
             content = GrammarPro.final_polish(res.text)
             report += f"\n\n{title}\n{'-'*len(title)}\n\n{content}\n"
-            time.sleep(5) # Kota koruması için 5 saniye bekleme
+            time.sleep(5) # Kota dostu bekleme
         except Exception as e:
             st.error(f"Modül üretim hatası: {str(e)}")
             break
@@ -112,11 +114,10 @@ with st.sidebar:
 
 user_input = st.text_area("Analiz edilecek verileri buraya girin (Max 8000 karakter):", height=200)
 
-# Ücretsiz Özet Butonu
 if st.button("🔍 Ücretsiz Stratejik Özet"):
     if user_input:
         with st.spinner('Hızlı analiz yapılıyor...'):
-            res = model.generate_content(f"Özetle ve 3 tavsiye ver: {user_input}")
+            res = model.generate_content(f"Hızlıca özetle ve 3 kritik tavsiye ver: {user_input}")
             st.write(GrammarPro.final_polish(res.text))
 
 st.divider()
@@ -134,7 +135,7 @@ with col_b:
 
 st.link_button("💎 VIP Rapor Satın Al (Shopier)", "https://www.shopier.com/SAYFA_LINKIN", use_container_width=True)
 
-# --- MASTER BUTON (KONTROLLER DÜZELTİLDİ) ---
+# --- MASTER BUTON ---
 if st.button("🚀 MASTER RAPORU ŞİMDİ İNŞA ET", type="primary", use_container_width=True):
     if not user_input:
         st.error("Lütfen analiz edilecek verileri girin!")
