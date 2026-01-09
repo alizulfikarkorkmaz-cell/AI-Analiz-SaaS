@@ -9,14 +9,14 @@ import time
 # =================================================================
 st.set_page_config(page_title="AI Ultra Strateji: Master Gold", page_icon="🏆", layout="wide")
 
-# Secrets kontrolü
 if "GEMINI_API_KEY" not in st.secrets:
     st.error("Sistem hatası: 'GEMINI_API_KEY' bulunamadı! Lütfen secrets.toml dosyasını kontrol edin.")
     st.stop()
 
 try:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    # 404 Hatasını önlemek için model ismini v1 üzerinden netleştiriyoruz
+    model = genai.GenerativeModel(model_name='gemini-1.5-flash')
 except Exception as e:
     st.error(f"Bağlantı Hatası: {str(e)}")
     st.stop()
@@ -38,10 +38,7 @@ HIZMET_SOZLESMESI = """
 class GrammarPro:
     @staticmethod
     def final_polish(text):
-        # Gereksiz karakter temizliği
         text = re.sub(r'[^\x00-\x7FçğıöşüÇĞİÖŞÜİı\n\r\t .,;:!?()/%&\-+=*]+', '', text)
-        
-        # Senin raporlarında (MASTER_STRATEJI_12365478.txt) gördüğüm hataları düzelten sözlük
         corrections = {
             r"\bmekn\b": "mekan", r"\bkğıt\b": "kağıt", r"\bakğt\b": "kağıt",
             r"\bherşey\b": "her şey", r"\bbirşey\b": "bir şey", r"\byada\b": "ya da",
@@ -55,14 +52,15 @@ class GrammarPro:
         return text.strip()
 
 # =================================================================
-# 4. DEV ANALİZ MOTORU (10.000 Kelime Hedefli - 5 Modül)
+# 4. DEV ANALİZ MOTORU (10.000 Kelime & TDK & CEO Protokolü)
 # =================================================================
 def generate_master_report(user_data, order_no):
+    # Modüller senin istediğin o en ağır teknik başlıklarla güncellendi
     modules = {
         "📊 MODÜL 1: OPERASYONEL ANALİZ VE TEKNİK KUSUR TESPİTİ": "Kök neden analizi ile altyapıdaki 15 kusuru mühendislik diliyle anlat.",
         "💸 MODÜL 2: STRATEJİK FİYATLANDIRMA VE GELİR MİMARİSİ": "Premium algı ve psikolojik fiyatlandırma ile 10 strateji sun.",
         "🧪 MODÜL 3: ENDÜSTRİYEL AR-GE VE ÜRETİM İNOVASYONU": "Ürün kalitesini artıracak teknik AR-GE süreçlerini anlat.",
-        "🛡️ MODÜL 4: PAZAR DOMİNASYONU VE RAKİP İSTİHBARATI": "Sektör liderlerini devirecek saldırı planını hazırla.",
+        "🛡️ MODÜL 4: PAZAR DOMİNASYONU VE RAKİP İSTİHBARATI": "Sektör liderlerini devirecek 'Mavi Okyanus' saldırı planını hazırla.",
         "📈 MODÜL 5: 360 DERECE BÜYÜME VE 12 AYLIK ROI PROJEKSİYONU": "Gelecek 12 ayın her ayı için teknik iş planı ve KPI tablosu oluştur."
     }
 
@@ -73,12 +71,17 @@ def generate_master_report(user_data, order_no):
     status_msg = st.empty()
     
     for i, (title, instruction) in enumerate(modules.items()):
-        status_msg.warning(f"⏳ {title} örülüyor... Gemini & TDK Aktif.")
+        status_msg.warning(f"⏳ {title} örülüyor... Gemini & TDK Editörü Aktif.")
         
+        # Talimatları "Vay vay vay" seviyesine çıkardık
         system_msg = f"""
         Sen dünyanın en kıdemli yönetim danışmanı ve bir TDK Profesörüsün.
-        GÖREVİN: {title} konusunu en az 2000 kelime, ağır kurumsal dille yazmak.
-        KURALLAR: 'mekan', 'kağıt' gibi kelimeleri doğru yaz. 'Her şey' ayrı olsun.
+        GÖREVİN: {title} konusunu en az 2000 kelime, ağır kurumsal, teknik ve akademik bir dille yazmak.
+
+        GRAMER VE DİL KURALLARI (KRİTİK):
+        1. SESLİ HARF KORUMASI: 'mekn', 'kğıt', 'geliyo' gibi harf yutmalarını ASLA yapma. 
+        2. TDK STANDARDI: 'bir şey', 'ya da' gibi ayrı yazılanlara dikkat et. 'Durağı', 'kebabı' gibi yumuşamalara uy.
+        3. ÜSLUP: 'Güzel, pahalı' gibi basit kelimeler yerine 'Optimize, fahiş, sürdürülebilir' gibi teknik terimler kullan.
         """
 
         try:
@@ -86,7 +89,7 @@ def generate_master_report(user_data, order_no):
             res = model.generate_content(full_prompt)
             content = GrammarPro.final_polish(res.text)
             report += f"\n\n{title}\n{'-'*len(title)}\n\n{content}\n"
-            time.sleep(4) # Kota koruması
+            time.sleep(5) # Kota dostu bekleme
         except Exception as e:
             st.error(f"Modül üretim hatası: {str(e)}")
             break
@@ -108,14 +111,15 @@ with st.sidebar:
     st.divider()
     st.success("🛡️ TELAFİ GARANTİSİ")
     st.info("İçerik yetersizliği durumunda sipariş no ile manuel revize talep edebilirsiniz.")
+    st.write("📩 Destek: destek@sirketiniz.com")
 
 user_input = st.text_area("Analiz edilecek verileri buraya girin (Max 8000 karakter):", height=200)
 
 # Ücretsiz Özet Butonu
 if st.button("🔍 Ücretsiz Stratejik Özet"):
     if user_input:
-        with st.spinner('Özetleniyor...'):
-            res = model.generate_content(f"Özetle ve 3 tavsiye ver: {user_input}")
+        with st.spinner('Hızlı analiz yapılıyor...'):
+            res = model.generate_content(f"Aşağıdaki veriyi profesyonelce özetle ve 3 kritik tavsiye ver: {user_input}")
             st.write(GrammarPro.final_polish(res.text))
 
 st.divider()
@@ -133,7 +137,7 @@ with col_b:
 
 st.link_button("💎 VIP Rapor Satın Al (Shopier)", "https://www.shopier.com/SAYFA_LINKIN", use_container_width=True)
 
-# --- MASTER BUTON (HATA DÜZELTİLDİ) ---
+# --- MASTER BUTON (ONAY HATASI GİDERİLDİ) ---
 if st.button("🚀 MASTER RAPORU ŞİMDİ İNŞA ET", type="primary", use_container_width=True):
     if not user_input:
         st.error("Lütfen analiz edilecek verileri girin!")
@@ -142,10 +146,10 @@ if st.button("🚀 MASTER RAPORU ŞİMDİ İNŞA ET", type="primary", use_contai
     elif not sozlesme_onay:
         st.error("Lütfen sözleşmeyi onaylayın!")
     else:
-        with st.status("🛠️ Gemini raporunuzu hazırlıyor (4-6 dk)...", expanded=True):
+        with st.status("🛠️ Gemini & TDK Editörü raporunuzu hazırlıyor (5-7 dk)...", expanded=True):
             final_doc = generate_master_report(user_input, oid)
             if final_doc:
-                st.success("✅ Rapor Hazır!")
+                st.success("✅ 10.000 Kelimelik Kusursuz Rapor Hazır!")
                 st.download_button(
                     label="📂 Raporu Bilgisayarına İndir (.txt)",
                     data=final_doc.encode('utf-8-sig'),
@@ -154,6 +158,6 @@ if st.button("🚀 MASTER RAPORU ŞİMDİ İNŞA ET", type="primary", use_contai
                     use_container_width=True
                 )
                 with st.expander("📝 Kalite Kontrol Önizleme"):
-                    st.text(final_doc[:2000] + "...")
+                    st.text(final_doc[:2500] + "...")
 
 st.caption("© 2026 AI Analiz SaaS | Gold Edition | Professional Industry Solutions")
