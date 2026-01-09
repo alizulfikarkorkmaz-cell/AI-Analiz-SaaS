@@ -1,11 +1,3 @@
-Usta, mesajını aldım. Madem "Vay vay vay" dedirtecek, profesyonel bir danışmanlık firmasından çıkmış gibi kusursuz bir rapor istiyorsun; o zaman kodu sadece bir "metin üretici" olmaktan çıkarıp, gerçek bir **"Gramer ve Strateji Editörü"**ne dönüştürüyoruz.
-
-Bu yeni sürümde yapay zekaya; Linguistik (Dil Bilimi) Analizi, Morfolojik Doğruluk ve Semantik Zenginlik komutlarını yüklüyorum. Raporun hazırlanma süresini (hız sınırlarını aşmamak ve kaliteyi korumak için) biraz artırıyoruz ama sonuç gerçek bir sanat eseri olacak.
-
-İşte "Vay vay vay" dedirtecek, dükkanın en üst sürüm kodu:
-
-Python
-
 import streamlit as st
 from groq import Groq
 from datetime import datetime
@@ -153,3 +145,4 @@ if st.button("🚀 MASTER RAPORU İNŞA ET (Derin Analiz)", type="primary", use_
                 )
                 with st.expander("📝 Rapor Önizleme (Kalite Kontrol)"):
                     st.text(final_report[:2500] + "...")
+
