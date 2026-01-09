@@ -5,45 +5,63 @@ import re
 import time
 import json
 
-# --- KURUMSAL YAPILANDIRMA ---
+# =================================================================
+# 1. KURUMSAL YAPILANDIRMA
+# =================================================================
 st.set_page_config(page_title="AI Ultra Strateji Pro", page_icon="📈", layout="wide")
 
 try:
     client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 except Exception as e:
-    st.error("Sistem hatası: API anahtarı yüklenemedi!")
+    st.error("Sistem hatası: API anahtarı yüklenemedi! Lütfen Secrets ayarlarını kontrol edin.")
 
 # =================================================================
-# 1. ÖZEL DATA & DİL KORUMA SÖZLÜĞÜ (Kritik Bölüm)
+# 2. GELİŞMİŞ DİL KORUMA & ÖZEL DATA (Genişletilmiş Sürüm)
 # =================================================================
-# Bu sözlük, AI'nın "anlamsız" kelimeler yerine profesyonel terimler kullanmasını zorunlu kılar.
+# Bu bölüm, yapay zekanın "Çince" veya "bozuk Türkçe" hatalarını filtreler.
 DIL_KORUMA_DATASI = {
-    "yasakli_karakterler": r'[^\x00-\x7FçğıöşüÇĞİÖŞÜ\n\r\t .,;:!?()/%&\-+=*]+',
+    # İzin verilen karakterler (Standart Latin + Türkçe Karakterler + Noktalama)
+    "yasakli_karakterler": r'[^\x00-\x7FçğıöşüÇĞİÖŞÜİı\n\r\t .,;:!?()/%&\-+=*]+',
+    
+    # Otomatik Düzeltme Sözlüğü (Raporun profesyonelliğini artırır)
     "terim_sozlugu": {
         "zkušenilerini": "deneyimlerini",
         "tăngellemek": "engellemek",
         "felan": "ve benzeri",
         "şeyler": "stratejik unsurlar",
         "kötü": "operasyonel yetersizlik",
-        "pahalı": "yüksek fiyatlandırma segmenti"
+        "pahalı": "yüksek fiyatlandırma segmenti",
+        "verimliligini": "verimliliğini",
+        "altyapisi": "altyapısı",
+        "gorunmektedir": "görünmektedir",
+        "altyapisinin": "altyapısının",
+        "fiyatlandirma": "fiyatlandırma",
+        "ozellestirilmis": "özelleştirilmiş",
+        "oncelikli": "öncelikli",
+        "musteri": "müşteri",
+        "calismalar": "çalışmalar",
+        "karlilik": "karlılık"
     }
 }
 
 class TextProcessor:
     @staticmethod
     def clean_text(text):
-        # 1. Adım: Çince ve bozuk karakterleri temizle
+        """Metni temizler, karakterleri düzeltir ve profesyonelleştirir."""
+        # 1. Adım: Yasaklı/Bozuk karakterleri temizle
         text = re.sub(DIL_KORUMA_DATASI["yasakli_karakterler"], '', text)
-        # 2. Adım: Sözlükteki hatalı kelimeleri profesyonelleriyle değiştir
+        
+        # 2. Adım: Sözlükteki hatalı kelimeleri doğrularıyla değiştir
         for hatali, dogru in DIL_KORUMA_DATASI["terim_sozlugu"].items():
             text = text.replace(hatali, dogru)
+            
         return text.strip()
 
 # =================================================================
-# 2. KATMANLI DEV RAPOR MOTORU (MODÜL MİMARİSİ)
+# 3. KATMANLI DEV RAPOR MOTORU (10.000 KELİME HEDEFLİ)
 # =================================================================
 def generate_vip_content(user_data, order_no):
-    # Raporun iskeleti - Her modül 2000 kelime hedefli
+    # Rapor 5 ana modülden oluşur. Her biri ayrı ayrı üretilir.
     modules = {
         "📊 MODÜL 1: OPERASYONEL ANALİZ VE SİSTEMATİK KUSUR TESPİTİ": (
             "Verilen ham verileri 'Kök Neden Analizi' (Root Cause Analysis) yöntemiyle incele. "
@@ -67,21 +85,25 @@ def generate_vip_content(user_data, order_no):
         )
     }
 
-    full_report = f"💎 VIP STRATEJİK ÇÖZÜM RAPORU\nNo: {order_no}\n"
+    full_report = f"💎 VIP STRATEJİK ÇÖZÜM RAPORU\nNo: {order_no}\nTarih: {datetime.now().strftime('%d/%m/%Y')}\n"
     full_report += "="*70 + "\n\n"
     
     progress_bar = st.progress(0)
     
     for i, (title, instruction) in enumerate(modules.items()):
         status_msg = st.empty()
-        status_msg.warning(f"⚙️ {title} örülüyor...")
+        status_msg.warning(f"⚙️ {title} örülüyor... (Derin Yapay Zeka Modu)")
         
+        # PROMPT GÜNCELLEMESİ: Türkçe Karakter Zorunluluğu Eklendi
         system_msg = f"""
         Sen dünyanın en kıdemli iş stratejisti ve endüstri mühendisisin. 
         Görevin: Aşağıdaki verilerden yola çıkarak {title} bölümünü en az 2000 kelime olacak şekilde yazmak.
-        DİL KURALLARI: Sadece Türkiye Türkçesi. 'zkušenilerini' veya 'tăngellemek' gibi saçma kelimeler kullanma. 
-        Yerine profesyonel karşılıklarını (deneyim, engellemek) kullan.
-        ÜSLUP: Teknik, ağırbaşlı ve kurumsal.
+        
+        ÇOK ÖNEMLİ KURALLAR:
+        1. Sadece mükemmel Türkiye Türkçesi kullan. 
+        2. Türkçe karakterleri (ğ, ü, ş, ı, ö, ç, İ) mutlaka kullan. Asla "g, u, s, i, o, c" yazma.
+        3. Örnek: 'altyapisi' YAZMA, 'altyapısı' YAZ. 'gorunmektedir' YAZMA, 'görünmektedir' YAZ.
+        4. Üslup: Akademik, teknik ve kurumsal. Asla sohbet eder gibi konuşma.
         """
 
         try:
@@ -89,15 +111,20 @@ def generate_vip_content(user_data, order_no):
                 model="llama-3.3-70b-versatile",
                 messages=[
                     {"role": "system", "content": system_msg},
-                    {"role": "user", "content": f"Sipariş: {order_no}\nTalimat: {instruction}\nVeri: {user_input[:4500]}"}
+                    {"role": "user", "content": f"Sipariş No: {order_no}\nBölüm Talimatı: {instruction}\nVeri Seti: {user_data[:4500]}"}
                 ],
-                temperature=0.3
+                temperature=0.3 # Tutarlılık için düşük sıcaklık
             )
+            
+            # TextProcessor ile temizleyip rapora ekle
             content = TextProcessor.clean_text(res.choices[0].message.content)
             full_report += f"\n\n{title}\n{'-'*len(title)}\n\n{content}\n"
-            time.sleep(10) # API Limit koruması
+            
+            # Rate Limit (Hız Sınırı) Koruması
+            time.sleep(8) 
+            
         except Exception as e:
-            st.error(f"Hata: {str(e)}")
+            st.error(f"Hata oluştu: {str(e)}")
             break
             
         progress_bar.progress((i + 1) / len(modules))
@@ -106,7 +133,7 @@ def generate_vip_content(user_data, order_no):
     return full_report
 
 # =================================================================
-# 3. ARAYÜZ TASARIMI
+# 4. ARAYÜZ TASARIMI
 # =================================================================
 st.title("📈 AI Ultra Analiz & Strateji SaaS")
 st.markdown("##### 10.000 Kelimelik Teknik Çözüm ve İş Geliştirme Motoru")
@@ -115,7 +142,7 @@ with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/2092/2092663.png", width=80)
     st.title("🛡️ Güvenlik & Veri Koruma")
     st.info("Sistemimiz UTF-8-SIG karakter koruma altyapısıyla çalışmaktadır.")
-    st.caption("Özel Dil Datası v1.2 Aktif")
+    st.caption("Özel Dil Datası v2.0 (Genişletilmiş) Aktif")
 
 user_input = st.text_area("Analiz edilecek verileri buraya girin (Max 5000 karakter):", height=200)
 
@@ -125,13 +152,16 @@ with c1:
         if user_input:
             with st.spinner('Hızlı analiz yapılıyor...'):
                 res = client.chat.completions.create(
-                    messages=[{"role": "user", "content": f"Aşağıdaki verileri profesyonelce özetle ve 3 stratejik tavsiye ver: {user_input}"}],
+                    messages=[{"role": "user", "content": f"Aşağıdaki verileri profesyonelce özetle ve 3 stratejik tavsiye ver. Türkçe karakterlere dikkat et: {user_input}"}],
                     model="llama-3.3-70b-versatile"
                 )
                 st.success("📊 Hızlı Analiz Sonucu")
                 st.write(TextProcessor.clean_text(res.choices[0].message.content))
+        else:
+            st.warning("Lütfen veri giriniz.")
 
 with c2:
+    # NOT: Dükkan açılınca buradaki linki güncelle
     st.link_button("💎 VIP: 10.000 Kelimelik Dev Rapor", "https://www.shopier.com/SAYFA_LINKIN", use_container_width=True)
 
 st.write("---")
@@ -145,12 +175,15 @@ with col_b:
 
 if st.button("🚀 VIP Raporu Şimdi İnşa Et", type="primary", use_container_width=True):
     if not user_input or not oid or not confirm:
-        st.error("Giriş bilgileri eksik!")
+        st.error("Giriş bilgileri eksik! (Veri, Sipariş No veya Onay)")
     else:
         with st.status("🛠️ Raporunuz katman katman örülüyor. Bu işlem ~3-4 dakika sürebilir.", expanded=True):
             final_doc = generate_vip_content(user_input, oid)
+            
             if final_doc:
                 st.success("✅ 10.000 Kelimelik Rapor Hazır!")
+                
+                # İNDİRME BUTONU: UTF-8-SIG (Kritik Karakter Koruması)
                 st.download_button(
                     label="📂 Raporu Bilgisayarına İndir (.txt)",
                     data=final_doc.encode('utf-8-sig'),
@@ -158,7 +191,9 @@ if st.button("🚀 VIP Raporu Şimdi İnşa Et", type="primary", use_container_w
                     mime="text/plain; charset=utf-8",
                     use_container_width=True
                 )
-                with st.expander("📝 Rapor Önizleme"):
+                
+                with st.expander("📝 Rapor Önizleme (İlk 3000 Karakter)"):
                     st.text(final_doc[:3000] + "...")
 
 st.caption("© 2026 AI Analiz SaaS | Professional Industry Solutions")
+
