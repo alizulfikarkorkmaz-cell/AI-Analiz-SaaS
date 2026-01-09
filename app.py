@@ -34,9 +34,17 @@ if "GEMINI_API_KEY" not in st.secrets:
 
 try:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    model = genai.GenerativeModel(model_name='gemini-1.5-turbo')  # NOTFOUND hatasını önler
+    
+    # Mevcut modelleri listele ve Streamlit arayüzünde göster
+    available_models = genai.list_models()
+    st.sidebar.subheader("🛰️ Mevcut Gemini Modelleri:")
+    for m in available_models:
+        st.sidebar.text(f"- {m['name']}")
+
+    # Desteklenen model
+    model = genai.GenerativeModel(model_name='gemini-2.5-flash')
 except Exception as e:
-    st.error(f"Bağlantı Hatası: {str(e)}")
+    st.error(f"Bağlantı Hatası veya Model Bulunamadı: {str(e)}")
     st.stop()
 
 # ==============================
@@ -154,3 +162,5 @@ if st.button("🚀 MASTER RAPORU ŞİMDİ İNŞA ET"):
                     mime="text/plain; charset=utf-8",
                     use_container_width=True
                 )
+
+
