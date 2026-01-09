@@ -1,17 +1,3 @@
-Merhaba! Ben Kodlama Desteği. Paylaştığın Streamlit kodunu inceledim. Karşılaştığın "kara kutucuklar" (karakter kodlama hataları) ve "saçma sapan mesajlar" (LLM'in bağlamdan kopması) sorunlarını çözmek için kodu modernize etmemiz ve daha sağlam bir yapıya kavuşturmamız gerekiyor.
-
-Sorunların Nedenleri ve Çözümlerimiz
-Karakter Sorunu (Kara Kutucuklar): ReportLab kütüphanesi varsayılan olarak "Helvetica" fontunu kullanır ve bu font Türkçe karakterleri (ğ, ş, İ, ı vb.) desteklemez. Çözüm için Türkçe destekli bir font (örneğin FreeSans) yüklemeliyiz.
-
-İçerik Kalitesi ve "Saçma" Mesajlar: Mevcut clean_text_for_output fonksiyonun çok sert. [^a-zA-Z0-9...] dışındaki her şeyi sildiği için LLM'in ürettiği anlamlı noktalama işaretlerini veya özel teknik terimleri bozuyor olabilir. Ayrıca llama-3.3-70b gibi modeller, çok uzun çıktı (2000 kelime/bölüm) zorlandığında tekrara düşebilir.
-
-Prompt Güçlendirme: Modeli daha sıkı kontrol altında tutmak için sistem komutlarını netleştirmeliyiz.
-
-İşte bu sorunları gideren güncellenmiş kodunuz:
-
-Güncellenmiş ve İyileştirilmiş Kod
-Python
-
 import streamlit as st
 from groq import Groq
 from datetime import datetime
@@ -186,3 +172,4 @@ if st.button("🚀 VIP Raporu Üret ve Mail Gönder"):
         # st.download_button(...)
         st.success("İşlem Başarılı! Raporunuz hazırlandı.")
         st.download_button("📂 PDF Raporu İndir", pdf_buf, file_name=f"VIP_Rapor_
+
