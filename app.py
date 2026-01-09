@@ -171,5 +171,4 @@ if st.button("🚀 VIP Raporu Üret ve Mail Gönder"):
         # [send_email fonksiyonunuzu burada çağırın]
         # st.download_button(...)
         st.success("İşlem Başarılı! Raporunuz hazırlandı.")
-        st.download_button("📂 PDF Raporu İndir", pdf_buf, file_name=f"VIP_Rapor_
-
+        st.download_button("📂 PDF Raporu İndir", pdf_buf, file_name=f"VIP_Rapor_{order_no}.pdf")
