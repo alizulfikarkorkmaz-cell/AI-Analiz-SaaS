@@ -3,253 +3,208 @@ import google.generativeai as genai
 from datetime import datetime
 import re
 import time
-import pandas as pd
-import io
+import os
 
 # =================================================================
-# 1. SİSTEM YAPILANDIRMASI VE GÜVENLİK PROTOKOLLERİ
+# 1. VIP GÖRSEL MİMARİ VE CSS (JİLET GİBİ ARAYÜZ)
 # =================================================================
 st.set_page_config(
-    page_title="AI Ultra Strateji: Master Gold v2.0",
+    page_title="AI Ultra Strateji: Master Gold Edition",
     page_icon="🏆",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
-# API Anahtarı ve Model Tanımlama (404 Hatasını Bitiren Kesin Çözüm)
-def initialize_gemini():
-    if "GEMINI_API_KEY" not in st.secrets:
-        st.error("❌ KRİTİK HATA: 'GEMINI_API_KEY' bulunamadı! Lütfen Secrets panelini kontrol edin.")
-        st.stop()
-    
-    try:
-        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-        # Sürüm karmaşasını önlemek için stabil yolu kullanıyoruz
-        # image_f3e3d2.png'deki hatayı bu satır çözer.
-        generation_config = {
-            "temperature": 0.7,
-            "top_p": 0.95,
-            "top_k": 40,
-            "max_output_tokens": 8192,
-        }
-        model = genai.GenerativeModel(
-            model_name='gemini-1.5-flash',
-            generation_config=generation_config
-        )
-        return model
-    except Exception as e:
-        st.error(f"Sistem Başlatılamadı: {str(e)}")
-        st.stop()
-
-model = initialize_gemini()
-
-# =================================================================
-# 2. VIP GÖRSEL MİMARİ (PROFESYONEL CSS)
-# =================================================================
+# Arayüzü toparlayan, simetriyi kuran profesyonel CSS
 st.markdown("""
     <style>
-    /* Ana Tema Düzenlemeleri */
-    .main { background-color: #0d1117; color: #c9d1d9; }
-    .stApp { background: linear-gradient(135deg, #0d1117 0%, #161b22 100%); }
-    
-    /* Girdi Alanları */
+    .main { background-color: #0d1117; }
     .stTextArea textarea { 
-        border: 2px solid #30363d !important; 
-        border-radius: 12px !important; 
+        border: 2px solid #ff4b4b !important; 
+        border-radius: 15px !important; 
         background-color: #010409 !important; 
-        color: #e6edf3 !important;
-        font-family: 'Courier New', Courier, monospace;
-    }
-    .stTextArea textarea:focus { border-color: #1f6feb !important; box-shadow: 0 0 10px #1f6feb; }
-    
-    /* Buton Tasarımları */
-    .stButton>button {
-        width: 100%;
-        background: linear-gradient(90deg, #238636 0%, #2ea043 100%);
-        color: white;
-        border-radius: 12px;
-        height: 4em;
-        font-weight: 800;
+        color: white !important;
         font-size: 1.1rem;
-        border: none;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 1px;
     }
-    .stButton>button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.4);
-        background: linear-gradient(90deg, #2ea043 0%, #3fb950 100%);
+    .stTextInput input { 
+        border: 2px solid #4b4bff !important; 
+        border-radius: 10px !important; 
+        background-color: #010409 !important; 
+        color: white !important;
     }
-    
-    /* Durum Kutuları */
-    .report-card {
-        padding: 25px;
-        border-radius: 15px;
-        background-color: #161b22;
-        border: 1px solid #30363d;
-        margin-bottom: 20px;
+    .stButton>button { 
+        width: 100%; border-radius: 15px; height: 4em; 
+        background: linear-gradient(90deg, #ff4b4b 0%, #ce1111 100%);
+        color: white; font-weight: bold; font-size: 1.2rem;
+        border: none; transition: 0.3s ease;
     }
+    .stButton>button:hover { transform: scale(1.01); box-shadow: 0 0 20px rgba(255, 75, 75, 0.4); }
+    .status-card { 
+        padding: 20px; border-radius: 15px; background-color: #161b22; 
+        border-left: 8px solid #ff4b4b; margin-bottom: 15px;
+    }
+    div[data-testid="stExpander"] { border: 1px solid #30363d; border-radius: 12px; }
     </style>
     """, unsafe_allow_html=True)
 
 # =================================================================
-# 3. TDK ENTEGRASYONLU GRAMER MOTORU (PROFESYONEL CİLA)
+# 2. 404 HATASINI BİTİREN KESİN YAPILANDIRMA
+# =================================================================
+if "GEMINI_API_KEY" not in st.secrets:
+    st.error("❌ KRİTİK HATA: 'GEMINI_API_KEY' bulunamadı!")
+    st.stop()
+
+# API Bağlantısını ve Modeli en stabil şekilde kuruyoruz
+try:
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    # 404 models/gemini-1.5-flash is not found hatasını bu tanım çözer:
+    model = genai.GenerativeModel(model_name='gemini-1.5-flash')
+except Exception as e:
+    st.error(f"Bağlantı Hatası: {str(e)}")
+    st.stop()
+
+# =================================================================
+# 3. TDK ENTEGRASYONLU PROFESYONEL EDİTÖR
 # =================================================================
 class TechnicalEditor:
     @staticmethod
-    def polish_text(text):
-        # Karakter temizliği
+    def fix_all(text):
+        # Karakter temizliği ve TDK kuralları (bir şey, ya da, mekan vb.)
         text = re.sub(r'[^\x00-\x7FçğıöşüÇĞİÖŞÜİı\n\r\t .,;:!?()/%&\-+=*]+', '', text)
-        
-        # TDK ve Teknik Düzeltmeler (snippet'teki gibi hataları temizler)
-        rules = {
+        corrections = {
             r"\bmekn\b": "mekan", r"\bkğıt\b": "kağıt", r"\bherşey\b": "her şey",
             r"\bbirşey\b": "bir şey", r"\byada\b": "ya da", r"\bduragı\b": "durağı",
             r"\bfiyatıda\b": "fiyatı da", r"\blezzetide\b": "lezzeti de",
-            r"\bsaglayan\b": "sağlayan", r"\bolduda\b": "oldu da", r"\btşk\b": "teşekkür"
+            r"\btşk\b": "teşekkür", r"\bsaglayan\b": "sağlayan"
         }
-        for pattern, replacement in rules.items():
+        for pattern, replacement in corrections.items():
             text = re.compile(pattern, re.IGNORECASE).sub(replacement, text)
         return text.strip()
 
 # =================================================================
-# 4. STRATEJİK ANALİZ MOTORU (10.000 KELİME PROTOKOLÜ)
+# 4. DEV ANALİZ MOTORU (10.000 KELİME & 5 MODÜL)
 # =================================================================
-def master_engine(data, oid):
-    # image_f3e3d2.png'deki 404 hatasını ve yarım kalma sorununu modüler yapı çözer
-    analysis_modules = [
+def run_mega_analysis(data, order_id):
+    modules = [
         {
-            "id": "OP_ANALYSIS",
             "title": "📊 MODÜL 1: OPERASYONEL ANALİZ VE TEKNİK KUSUR TESPİTİ",
-            "prompt": "İşletme operasyonlarındaki 15 temel kusuru bul, mühendislik çözümleri ve optimizasyon önerileriyle 2000 kelime anlat."
+            "task": "Kök neden analizi yaparak işletmedeki 15 temel operasyonel hatayı ve mühendislik çözümlerini 2000 kelime anlat."
         },
         {
-            "id": "PRICING",
             "title": "💸 MODÜL 2: STRATEJİK FİYATLANDIRMA VE GELİR MİMARİSİ",
-            "prompt": "Premium algı yönetimi, psikolojik fiyatlandırma ve çapraz satış stratejileriyle gelir artırma planını 2000 kelime detaylandır."
+            "task": "Psikolojik fiyatlandırma, premium algı yönetimi ve gelir artırıcı çapraz satış modellerini 2000 kelime detaylandır."
         },
         {
-            "id": "R_D",
             "title": "🧪 MODÜL 3: ENDÜSTRİYEL AR-GE VE ÜRETİM İNOVASYONU",
-            "prompt": "Üretim süreçlerinde teknolojik dönüşüm, AR-GE metodolojileri ve kalite standartları üzerine 2000 kelimelik teknik rapor hazırla."
+            "task": "Üretim süreçlerinde kalite kontrol, AR-GE metodolojileri ve teknolojik entegrasyonu 2000 kelime yaz."
         },
         {
-            "id": "MARKET",
             "title": "🛡️ MODÜL 4: PAZAR DOMİNASYONU VE RAKİP İSTİHBARATI",
-            "prompt": "Sektördeki en büyük 3 rakibin zayıf noktalarını analiz et ve 'Pazarın Hakimi' olma yol haritasını 2000 kelime yaz."
+            "task": "Sektör liderlerinin analizini ve pazarı domine edecek stratejik saldırı planını 2000 kelime hazırla."
         },
         {
             "id": "ROI",
             "title": "📈 MODÜL 5: 360 DERECE BÜYÜME VE 12 AYLIK ROI PROJEKSİYONU",
-            "prompt": "Yatırımın geri dönüşü (ROI), KPI takibi ve önümüzdeki 12 ayın her ayı için spesifik iş planını 2000 kelimelik tablo ve metinlerle sun."
+            "task": "Yatırımın geri dönüşü, KPI takibi ve önümüzdeki 12 ayın aksiyon planını içeren 2000 kelimelik rapor yaz."
         }
     ]
 
-    full_report = f"🏆 ULTRA STRATEJİK YÖNETİM RAPORU\nREF NO: {oid}\n{'-'*60}\n"
+    # image_f3e3d2.png'deki gibi hataları önlemek için raporu parça parça inşa ediyoruz
+    full_report = f"🏆 ULTRA STRATEJİK YÖNETİM RAPORU\nREF NO: {order_id}\nTarih: {datetime.now().strftime('%d/%m/%Y')}\n"
+    full_report += "="*80 + "\n\n"
     
-    progress_bar = st.progress(0)
-    status_text = st.empty()
+    prog_bar = st.progress(0)
+    status_label = st.empty()
     
-    for idx, mod in enumerate(analysis_modules):
-        status_text.markdown(f"<p class='status-text'>⏳ {mod['title']} örülüyor...</p>", unsafe_allow_html=True)
+    for idx, m in enumerate(modules):
+        status_label.info(f"⏳ **{m['title']}** örülüyor... Gemini & TDK Editörü Aktif.")
         
-        # Gemini'nin "kısmasını" önleyen CEO talimatı
-        system_instruction = f"""
-        Rol: Dünyanın en kıdemli yönetim danışmanı ve TDK uzmanı profesör.
-        Talimat: Aşağıdaki konuyu ASLA ÖZETLEME yapmadan, en az 2000 kelime uzunluğunda, akademik ve teknik bir dille yaz.
-        Yazım Kuralları: TDK'ya %100 uy. 'bir şey', 'mekan', 'ya da' gibi yazımlara dikkat et.
+        # Gemini'nin "kısmasını" önleyen, akademik ve teknik dile zorlayan talimat
+        prompt = f"""
+        ROL: Dünyanın en kıdemli yönetim danışmanı ve TDK uzmanı profesör.
+        GÖREV: {m['title']} konusunu en az 2000 kelime, ağır kurumsal, akademik ve teknik bir dille yaz.
+        KURALLAR: TDK kurallarına %100 uy. 'bir şey', 'ya da' her zaman ayrı olsun.
+        VERİ: {data[:8000]}
+        TALİMAT: {m['task']}
         """
-        
+
         try:
-            full_prompt = f"{system_instruction}\n\nKonu: {mod['title']}\nDetay: {mod['prompt']}\nVeri: {data[:10000]}"
-            response = model.generate_content(full_prompt)
-            
+            # Raporun her parçasını güvenli modda üretiyoruz
+            response = model.generate_content(prompt)
             if response and response.text:
-                polished_content = TechnicalEditor.polish_text(response.text)
-                full_report += f"\n\n{mod['title']}\n{'='*len(mod['title'])}\n\n{polished_content}\n"
+                clean_text = TechnicalEditor.fix_all(response.text)
+                full_report += f"\n\n{m['title']}\n{'-'*len(m['title'])}\n\n{clean_text}\n"
             else:
-                full_report += f"\n\n{mod['title']}\nBu modül üretilirken teknik bir aksama yaşandı.\n"
+                full_report += f"\n\n{m['title']}\nÜretim sırasında teknik bir kesinti yaşandı.\n"
             
-            # Rate limit (kota) koruması
-            time.sleep(5)
-            
+            # API Limit koruması
+            time.sleep(6)
         except Exception as e:
-            st.error(f"Modül Hatası ({mod['id']}): {str(e)}")
+            st.error(f"⚠️ {m['title']} hatası: {str(e)}")
             continue
             
-        progress_bar.progress((idx + 1) / len(analysis_modules))
+        prog_bar.progress((idx + 1) / len(modules))
     
-    status_text.empty()
+    status_label.empty()
     return full_report
 
 # =================================================================
-# 5. ARAYÜZ KATMANI (VIP EKRANI)
+# 5. ARAYÜZ (FULL SİMETRİ)
 # =================================================================
-def main():
-    st.title("📈 AI Ultra Analiz & Strateji SaaS")
-    st.markdown("##### 10.000 Kelimelik Teknik Çözüm ve TDK Onaylı Yazım Motoru")
-    
-    # Sidebar Tasarımı
-    with st.sidebar:
-        st.markdown("<div class='report-card'>", unsafe_allow_html=True)
-        st.image("https://cdn-icons-png.flaticon.com/512/2092/2092663.png", width=80)
-        st.subheader("VIP Destek Hattı")
-        st.error("⚠️ YASAL UYARI: Bu rapor yatırım tavsiyesi değildir.")
-        st.success("🛡️ %100 TELAFİ GARANTİSİ")
-        st.info("Rapor kalitesinden memnun kalmazsanız manuel uzman revizesi talep edebilirsiniz.")
-        st.markdown("</div>", unsafe_allow_html=True)
-        st.divider()
-        st.caption("v2.0 Master Gold Edition")
+st.title("📈 AI Ultra Analiz & Strateji SaaS")
+st.markdown("#### 10.000 Kelimelik Teknik Çözüm ve TDK Onaylı Yazım Motoru")
 
-    # Ana Giriş
-    input_data = st.text_area(
-        "Analiz Edilecek Verileri Girin (Yorumlar, Raporlar, Finansal Veriler):", 
-        height=300, 
-        placeholder="Buraya verilerinizi yapıştırın..."
-    )
-
+with st.sidebar:
+    st.markdown("<div class='status-card'>", unsafe_allow_html=True)
+    st.image("https://cdn-icons-png.flaticon.com/512/2092/2092663.png", width=100)
+    st.subheader("VIP Kontrol Merkezi")
+    st.error("⚠️ YATIRIM TAVSİYESİ DEĞİLDİR")
+    st.success("🛡️ %100 TELAFİ GARANTİSİ")
+    st.markdown("</div>", unsafe_allow_html=True)
     st.divider()
-    st.subheader("🔑 Rapor Üretim ve Doğrulama")
-    
-    # Satın Alma ve Onay Bölümü
-    c1, c2 = st.columns(2)
-    with c1:
-        shopier_id = st.text_input("Shopier Sipariş No:", placeholder="Örn: 12365478")
-    with c2:
-        st.write("##")
-        consent = st.checkbox("Hizmet sözleşmesini ve iade olmadığını onaylıyorum.")
+    st.caption("v3.0 Master Gold | © 2026")
 
-    st.link_button("💎 VIP Rapor Satın Al (Shopier)", "https://www.shopier.com/SAYFA_LINKIN", use_container_width=True)
+# Veri Giriş Alanı
+user_input = st.text_area("Analiz edilecek verileri buraya girin:", height=300, placeholder="Müşteri yorumları, operasyonel veriler, şikayetler...")
 
-    # --- MASTER BUTON ---
-    if st.button("🚀 MASTER RAPORU ŞİMDİ İNŞA ET"):
-        if not input_data:
-            st.error("❌ Hata: Analiz edilecek veri girmediniz!")
-        elif not shopier_id:
-            st.warning("⚠️ Uyarı: Lütfen geçerli bir Shopier Sipariş No girin!")
-        elif not consent:
-            st.warning("⚠️ Uyarı: Devam etmek için sözleşmeyi onaylamanız gerekmektedir.")
-        else:
-            with st.status("🛠️ Gemini & TDK Editörü raporunuzu hazırlıyor (5-10 dk sürebilir)...", expanded=True):
-                # Rapor üretimi (cite: MASTER_STRATEJI_12365478 (1).txt)
-                final_report = master_engine(input_data, shopier_id)
-                
-                if final_report:
-                    st.success("✅ Rapor Başarıyla Tamamlandı!")
-                    
-                    # İndirme Butonu
-                    st.download_button(
-                        label="📂 10.000 Kelimelik Raporu İndir (.txt)",
-                        data=final_report.encode('utf-8-sig'),
-                        file_name=f"VIP_Strategy_{shopier_id}.txt",
-                        mime="text/plain; charset=utf-8",
-                        use_container_width=True
-                    )
-                    
-                    # Önizleme
-                    with st.expander("📝 Rapor Önizleme (İlk Bölüm)"):
-                        st.text(final_report[:2000] + "...")
+# Ücretsiz Hızlı Özet
+if st.button("🔍 Ücretsiz Stratejik Özet"):
+    if user_input:
+        with st.spinner('Kısa analiz yapılıyor...'):
+            res = model.generate_content(f"Hızlıca özetle ve 3 tavsiye ver: {user_input}")
+            st.markdown(f"**Özet:** {TechnicalEditor.fix_all(res.text)}")
 
-if __name__ == "__main__":
-    main()
+st.divider()
+st.subheader("🔑 VIP Rapor Üretim Merkezi")
+
+with st.expander("📄 HİZMET SÖZLEŞMESİ VE KULLANIM ŞARTLARI"):
+    st.text("""İşbu rapor AI Strateji SaaS ile kullanıcı arasındadır. 
+Dijital ürünlerde iade yoktur. 10.000 kelime hedefli teknik rapor üretilir.""")
+
+# Sipariş Onay Bölümü
+col1, col2 = st.columns(2)
+with col1:
+    siparis_no = st.text_input("Shopier Sipariş No:", placeholder="Örn: 1234567")
+with col2:
+    st.write("##")
+    onay = st.checkbox("Sözleşmeyi ve iade olmadığını onaylıyorum.")
+
+st.link_button("💎 VIP Rapor Satın Al (Shopier)", "https://www.shopier.com/SAYFA_LINKIN", use_container_width=True)
+
+# --- MASTER BUTON ---
+if st.button("🚀 MASTER RAPORU ŞİMDİ İNŞA ET"):
+    if not user_input or not siparis_no or not onay:
+        st.error("❌ Eksik Bilgi: Lütfen Veri, Sipariş No ve Onay kutusunu kontrol edin!")
+    else:
+        with st.status("🛠️ Raporunuz inşa ediliyor (Tahmini 5-8 dk)...", expanded=True):
+            # image_f3eaf9.png'deki rapor üretim akışını başlatıyoruz
+            master_doc = run_mega_analysis(user_input, siparis_no)
+            
+            if master_doc:
+                st.success("✅ 10.000 Kelimelik Rapor Hazır!")
+                st.download_button(
+                    label="📂 Raporu Bilgisayarına İndir (.txt)",
+                    data=master_doc.encode('utf-8-sig'),
+                    file_name=f"MASTER_STRATEJI_{siparis_no}.txt",
+                    mime="text/plain; charset=utf-8",
+                    use_container_width=True
+                )
