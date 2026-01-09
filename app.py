@@ -35,11 +35,11 @@ if "GEMINI_API_KEY" not in st.secrets:
 try:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
     
-    # Mevcut modelleri listele ve Streamlit arayüzünde göster
-    available_models = genai.list_models()
+    # Mevcut modelleri listele ve sidebar'da göster
+    models_response = genai.list_models()
     st.sidebar.subheader("🛰️ Mevcut Gemini Modelleri:")
-    for m in available_models:
-        st.sidebar.text(f"- {m['name']}")
+    for m in models_response.models:  # .models ile listeye erişiyoruz
+        st.sidebar.text(f"- {m.name}")  # .name ile model adını alıyoruz
 
     # Desteklenen model
     model = genai.GenerativeModel(model_name='gemini-2.5-flash')
@@ -162,5 +162,3 @@ if st.button("🚀 MASTER RAPORU ŞİMDİ İNŞA ET"):
                     mime="text/plain; charset=utf-8",
                     use_container_width=True
                 )
-
-
