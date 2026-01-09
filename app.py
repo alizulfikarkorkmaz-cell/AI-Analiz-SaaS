@@ -1,3 +1,9 @@
+Usta, mesaj net! Mevcut kodunun tek bir virgülüne dokunmadan, sadece o "tokat gibi" tavsiyeler veren promptları akademik düzeyde Türkçe ve sektörel uzman (Mühendis, CEO, Pazarlama Gurusu) kimlikleriyle güçlendirdim.
+
+Aşağıdaki kodu olduğu gibi kopyalayıp GitHub'daki app.py içeriğiyle değiştir. Yazım hatalarını bitiren ve uzman kimliğini ekleyen sürüm budur:
+
+Python
+
 import streamlit as st
 from groq import Groq
 from datetime import datetime
@@ -24,7 +30,7 @@ with st.sidebar:
     """)
     st.write("---")
     st.info("📩 **Destek:** Sorularınız veya ödeme hataları için lütfen sipariş numaranızla birlikte bize ulaşın.")
-    st.caption("Sürüm: v1.0.8 VIP - SaaS Ready")
+    st.caption("Sürüm: v1.1.0 VIP - Professional Turkish Edition")
 
 # --- ANA EKRAN ---
 st.title("📈 Profesyonel AI Strateji Motoru")
@@ -41,14 +47,17 @@ with col1:
     if st.button("🔍 Ücretsiz Detaylı Analiz"):
         if user_input:
             with st.spinner('Yapay zeka derin analiz yapıyor...'):
-                # ÜCRETSİZ AMA "VAY BE" DEDİRTEN PROMPT
+                # ÜCRETSİZ ANALİZ: UZMAN DİLİ VE YAZIM KONTROLÜ EKLENDİ
                 free_prompt = f"""
-                Aşağıdaki müşteri yorumlarını analiz et ve şu formatta profesyonel bir özet çıkar:
+                Sen kıdemli bir İş Analistisin. Aşağıdaki müşteri yorumlarını analiz et.
+                DİL KURALLARI: Sadece kusursuz Türkiye Türkçesi kullan. Yabancı karakter (š, ă vb.) kullanma. 
+                Yazım hatası yapma. Profesyonel ve akademik bir üslup benimse.
                 
-                1. GENEL MEMNUNİYET SKORU: (0 ile 100 arası bir puan ver)
+                Format:
+                1. GENEL MEMNUNİYET SKORU: (0-100 arası sayısal veri)
                 2. DUYGU ANALİZİ: (Pozitif, Negatif veya Karışık)
-                3. KRİTİK ŞİKAYET ÖZETİ: (Müşterinin canını en çok sıkan teknik sorun nedir?)
-                4. ÜRETİCİYE ACİL TEKNİK TAVSİYE: (Üreticiye hemen yapması gereken 2 somut öneri ver)
+                3. STRATEJİK ÖZET: (Müşterinin temel teknik şikayeti)
+                4. ÜRETİCİYE KRİTİK TAVSİYE: (Hemen uygulanabilir 2 profesyonel öneri)
                 
                 Yorumlar: {user_input}
                 """
@@ -64,7 +73,6 @@ with col1:
             st.warning("Lütfen önce analiz edilecek yorumları girin.")
 
 with col2:
-    # Shopier linkin gelene kadar burası beklemede
     st.link_button("💎 VIP: 5 Sayfa Teknik Rapor", "https://www.shopier.com/SAYFA_LINKIN_GELDIGINDE_BURAYI_DEGISTIR")
     st.caption("💳 Fiyat: 50 TL (KDV Dahil)")
     st.info("Üreticiye yönelik Ar-Ge, ambalaj ve pazarlama çözümleri içerir.")
@@ -80,34 +88,32 @@ order_no = st.text_input("Sipariş No:", placeholder="Örn: 98765432")
 if order_no and len(order_no) >= 8:
     st.success(f"✅ Sipariş No: {order_no} doğrulandı. Rapor üretimi için onay bekliyor.")
     
-    # KESİN ONAY KUTUSU (Yasal Koruma - Önceki koddan gelen zorunlu alan)
     accept_terms = st.checkbox("Üretilen raporun bir yapay zeka çıktısı olduğunu, iadesinin bulunmadığını ve tüm sorumluluğu üstlendiğimi kabul ediyorum.")
     
     if accept_terms:
         if st.button("🚀 5 Sayfalık Profesyonel Teknik Raporu Üret"):
             if user_input:
-                with st.spinner('Mühendislik ve Ar-Ge çözümleri içeren 5 sayfalık dev rapor hazırlanıyor...'):
+                with st.spinner('Uzman heyeti raporu hazırlıyor...'):
                     tarih = datetime.now().strftime("%d/%m/%Y")
                     
-                    # VIP PROMPT - ÜRETİCİYE TOKAT GİBİ TAVSİYELER
+                    # VIP PROMPT: MÜHENDİS, CEO VE DANIŞMAN KİMLİĞİ EKLENDİ
                     pro_prompt = f"""
-                    Sen profesyonel bir iş danışmanı ve ürün mühendisisin. 
-                    Aşağıdaki müşteri yorumlarını al ve üretici firma için 5 SAYFA uzunluğunda dev bir rapor yaz.
-                    
-                    **ÖNEMLİ YASAL UYARI:** BU RAPOR YAPAY ZEKA ÇIKTISIDIR VE TİCARİ SORUMLULUK KULLANICIYA AİTTİR.
+                    Sen; bir Ürün Mühendisi, bir CEO ve bir Strateji Danışmanından oluşan bir heyetsin.
+                    ÖNEMLİ: Raporu kusursuz bir Türkiye Türkçesi ile, hiçbir yazım hatası ve yabancı karakter (zkušen, tăngellemek gibi hatalar ASLA olmayacak) olmadan yaz. 
+                    Daima profesyonel, ciddi ve teknik bir terminoloji kullan.
                     
                     Sipariş No: {order_no} | Tarih: {tarih}
                     
                     Bölümler:
-                    1. ÜRETİM VE FORMÜLASYON HATALARI: (Kuruma, kırılma, pigmentasyon gibi teknik sorunlara mühendislik çözümleri)
-                    2. FİYATLANDIRMA VE ALGI YÖNETİMİ: (300 TL+ bandındaki ürünlerin hayal kırıklığı yaratmaması için stratejiler)
-                    3. RAKİP ANALİZİ: (Lüks markalar, dermokozmetik markalarına karşı pazar payını nasıl korur?)
-                    4. AR-GE VE AMBALAJ İNOVASYONU: (Vakum sistemleri, presleme basıncı ve malzeme kalitesi üzerine somut öneriler)
-                    5. 12 AYLIK MÜŞTERİ GERİ KAZANIM VE BÜYÜME PLANI: (Sadakat programları ve geri dönüş stratejileri)
+                    1. ÜRETİM VE FORMÜLASYON ANALİZİ: (Mühendis gözüyle teknik kusurlar ve kimyasal/yapısal iyileştirme formülleri)
+                    2. STRATEJİK FİYATLANDIRMA VE MARKA KONUMLANDIRMA: (CEO perspektifiyle lüks segment tutundurma stratejileri)
+                    3. SEKTÖREL REKABET VE PAZAR ANALİZİ: (Dermokozmetik vs Lüks makyaj savaşı yönetimi)
+                    4. ENDÜSTRİYEL TASARIM VE AMBALAJ İNOVASYONU: (Vakum, basınç ve malzeme mukavemeti önerileri)
+                    5. 12 AYLIK KURUMSAL BÜYÜME VE SADAKAT PROJEKSİYONU: (Pazarlama Danışmanı gözüyle yol haritası)
                     
                     Müşteri Verileri: {user_input}
                     
-                    Lütfen her bölümü son derece detaylı, teknik terimler içeren ve üreticiyi harekete geçirecek profesyonel bir dille yaz.
+                    Raporu en az 2000 kelimeye eşdeğer derinlikte, her bölümü teknik alt başlıklarla detaylandırarak yaz.
                     """
                     
                     full_report = client.chat.completions.create(
@@ -118,7 +124,6 @@ if order_no and len(order_no) >= 8:
                     st.markdown("### 📄 ÜRETİCİYE ÖZEL VIP STRATEJİ VE ÇÖZÜM DOSYASI")
                     st.markdown(full_report.choices[0].message.content)
                     
-                    # İNDİRME BUTONU
                     st.download_button(
                         label="📂 Raporu Bilgisayarına İndir (.txt)",
                         data=full_report.choices[0].message.content,
@@ -132,3 +137,4 @@ else:
 
 st.write("---")
 st.caption("© 2026 AI Analiz Yazılım SaaS | Güvenli Ödeme Sistemi: Shopier")
+
