@@ -1,18 +1,20 @@
 import streamlit as st
-from groq import Groq
+import google.generativeai as genai
 from datetime import datetime
 import re
 import time
 
 # =================================================================
-# 1. KURUMSAL YAPI VE ARAYÜZ AYARLARI (Eksiksiz)
+# 1. KURUMSAL YAPI VE GEMINI AYARLARI (GÜNCELLENDİ)
 # =================================================================
 st.set_page_config(page_title="AI Ultra Strateji: Master Gold", page_icon="🏆", layout="wide")
 
 try:
-    client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+    # Artik Groq degil, Gemini yapılandırması kullanılıyor
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    model = genai.GenerativeModel('gemini-1.5-flash')
 except Exception as e:
-    st.error("Sistem hatası: API Anahtarı (Secrets) bulunamadı!")
+    st.error("Sistem hatası: Gemini API Anahtarı (Secrets) bulunamadı!")
 
 # =================================================================
 # 2. HUKUKİ ZIRH VE SÖZLEŞME METNİ (Hiçbiri Silinmedi)
@@ -26,7 +28,7 @@ HIZMET_SOZLESMESI = """
 """
 
 # =================================================================
-# 3. ULTRA DİL, GRAMER VE SES OLAYI DENETİMİ (Genişletildi)
+# 3. ULTRA DİL, GRAMER VE SES OLAYI DENETİMİ (Eksiksiz Korundu)
 # =================================================================
 class GrammarPro:
     @staticmethod
@@ -48,7 +50,7 @@ class GrammarPro:
         return text.strip()
 
 # =================================================================
-# 4. DEV ANALİZ MOTORU (TDK & CEO PROTOKOLÜ)
+# 4. DEV ANALİZ MOTORU (GEMINI ALTYAPISI - 15/15)
 # =================================================================
 def generate_master_report(user_data, order_no):
     modules = {
@@ -71,7 +73,7 @@ def generate_master_report(user_data, order_no):
         # "Vay Vay Vay" Dedirten Üst Düzey Talimatlar
         system_msg = f"""
         Sen dünyanın en kıdemli yönetim danışmanı ve bir Türk Dil Kurumu (TDK) Profesörüsün.
-        Görevin: {title} konusunu en az 2000 kelime, ağır kurumsal ve teknik bir dille yazmak.
+        GÖREVİN: {title} konusunu en az 2000 kelime, ağır kurumsal ve teknik bir dille yazmak.
 
         GRAMER VE DİL KURALLARI:
         1. SESLİ HARF KORUMASI: 'mekn', 'kğıt', 'geliyo' gibi harf yutmalarını ASLA yapma. Her kelimeyi tam ve doğru yaz.
@@ -81,17 +83,15 @@ def generate_master_report(user_data, order_no):
         """
 
         try:
-            res = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[{"role": "system", "content": system_msg},
-                          {"role": "user", "content": f"Veri: {user_data[:5000]}\nTalimat: {instruction}"}],
-                temperature=0.2
-            )
-            content = GrammarPro.final_polish(res.choices[0].message.content)
+            # Gemini Üretim Modeli
+            full_prompt = f"{system_msg}\n\nAnaliz Edilecek Veri: {user_data[:8000]}\nTalimat: {instruction}"
+            res = model.generate_content(full_prompt)
+            
+            content = GrammarPro.final_polish(res.text)
             report += f"\n\n{title}\n{'-'*len(title)}\n\n{content}\n"
             
-            # Kalite için bekleme süresi
-            time.sleep(12) 
+            # Gemini ücretsiz kotada istekler arası kısa bekleme
+            time.sleep(4) 
             
         except Exception as e:
             st.error(f"Hata: {str(e)}")
@@ -118,17 +118,14 @@ with st.sidebar:
     st.info("Rapordan memnun kalmazsanız sipariş no ile başvurun; uzman ekibimiz manuel olarak revize eder.")
     st.write("📩 Destek: destek@sirketiniz.com")
 
-user_input = st.text_area("Analiz edilecek verileri buraya girin (Max 5000 karakter):", height=200)
+user_input = st.text_area("Analiz edilecek verileri buraya girin (Max 8000 karakter):", height=200)
 
 # --- ÜCRETSİZ ANALİZ BUTONU ---
 if st.button("🔍 Ücretsiz Stratejik Özet"):
     if user_input:
         with st.spinner('Hızlı analiz yapılıyor...'):
-            res = client.chat.completions.create(
-                messages=[{"role": "user", "content": f"Özetle ve 3 tavsiye ver: {user_input}"}],
-                model="llama-3.3-70b-versatile"
-            )
-            st.write(GrammarPro.final_polish(res.choices[0].message.content))
+            res = model.generate_content(f"Aşağıdaki veriyi profesyonelce özetle ve 3 kritik tavsiye ver: {user_input}")
+            st.write(GrammarPro.final_polish(res.text))
 
 st.divider()
 st.subheader("🔑 VIP Rapor Üretim Merkezi")
@@ -152,7 +149,7 @@ if st.button("🚀 MASTER RAPORU ŞİMDİ İNŞA ET", type="primary", use_contai
     if not user_input or not oid or not sozlesme_onay:
         st.error("Eksik: Veri, Sipariş No veya Sözleşme Onayı!")
     else:
-        with st.status("🛠️ Raporunuz Baş Stratejist ve TDK Editörü tarafından hazırlanıyor (5-8 dk)...", expanded=True):
+        with st.status("🛠️ Raporunuz Baş Stratejist ve TDK Editörü tarafından hazırlanıyor (4-6 dk)...", expanded=True):
             final_doc = generate_master_report(user_input, oid)
             if final_doc:
                 st.success("✅ 10.000 Kelimelik Kusursuz Rapor Hazır!")
