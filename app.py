@@ -11,7 +11,7 @@ import smtplib
 from email.message import EmailMessage
 
 # =========================
-# SAYFA AYARLARI
+# AYARLAR (GÖRSEL ŞÖLEN)
 # =========================
 st.set_page_config(
     page_title="AI Pro Analiz & Strateji",
@@ -25,11 +25,11 @@ st.set_page_config(
 try:
     client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 except Exception:
-    st.error("⚠️ Sistem Hatası: API Anahtarı bulunamadı. Lütfen Secrets ayarlarını kontrol edin.")
+    st.error("⚠️ API Hatası! Lütfen Secrets ayarlarınızı (Anahtarlarınızı) kontrol edin.")
     st.stop()
 
 # =========================
-# GÜVENLİK FİLTRELERİ
+# GÜVENLİK VE DİL FİLTRESİ
 # =========================
 BANNED_WORDS = ["falan", "felan", "şey", "yani", "bi", "herhalde", "možnosti", "口碑", "zkušen", "tăngellemek"]
 BANNED_REGEX = re.compile(r"[šăěščřž]|[\u4e00-\u9fff]|[\u0400-\u04FF]", re.UNICODE)
@@ -39,14 +39,14 @@ def output_is_clean(text: str) -> bool:
     return not (any(w in lower for w in BANNED_WORDS) or BANNED_REGEX.search(text))
 
 # =========================
-# PDF & E-POSTA MOTORU
+# PDF OLUŞTURMA MOTORU
 # =========================
 def create_pdf(report_text, order_no, tarih):
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
     c.setFont("Helvetica-Bold", 18)
-    c.drawCentredString(width/2, height-50, "VIP STRATEJI VE TEKNIK ANALIZ RAPORU")
+    c.drawCentredString(width/2, height-50, "📄 VIP STRATEJI VE TEKNIK ANALIZ RAPORU")
     c.setFont("Helvetica", 10)
     c.drawString(50, height-80, f"Siparis No: {order_no} | Tarih: {tarih}")
     y = height - 120
@@ -64,14 +64,17 @@ def create_pdf(report_text, order_no, tarih):
     buffer.seek(0)
     return buffer
 
+# =========================
+# E-POSTA GÖNDERİM MOTORU
+# =========================
 def send_email(pdf_buffer, to_email, order_no):
     msg = EmailMessage()
-    msg['Subject'] = f"VIP Analiz Raporunuz - Sipariş No: {order_no}"
+    msg['Subject'] = f"💎 VIP Strateji Raporunuz - No: {order_no}"
     msg['From'] = st.secrets["SMTP_USER"]
     msg['To'] = to_email
-    msg.set_content("Değerli İş Ortağımız,\n\nSatın aldığınız 10.000 kelimelik dev strateji raporu ekte PDF formatında sunulmuştur.\n\nBaşarılar dileriz.")
+    msg.set_content("Merhaba,\n\nTalep ettiğiniz 10.000 kelimelik VIP Strateji ve İş Planı Raporunuz ekte PDF olarak sunulmuştur.\n\nBol kazançlar dileriz.")
     pdf_buffer.seek(0)
-    msg.add_attachment(pdf_buffer.read(), maintype='application', subtype='pdf', filename=f"VIP_Rapor_{order_no}.pdf")
+    msg.add_attachment(pdf_buffer.read(), maintype='application', subtype='pdf', filename=f"VIP_RAPOR_{order_no}.pdf")
     try:
         with smtplib.SMTP_SSL(st.secrets["SMTP_SERVER"], st.secrets["SMTP_PORT"]) as server:
             server.login(st.secrets["SMTP_USER"], st.secrets["SMTP_PASS"])
@@ -80,77 +83,95 @@ def send_email(pdf_buffer, to_email, order_no):
     except: return False
 
 # =========================
-# YAN MENÜ (SIDEBAR) - İŞTE BURASI EKSİKTİ!
+# YAN MENÜ (YASAL ZIRH & BİLGİ)
 # =========================
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/2092/2092663.png", width=100)
-    st.title("🛡️ Kurumsal Panel")
-    st.info("📊 **VIP Rapor İçeriği:**\n* Mühendislik Analizi\n* Stratejik Fiyatlandırma\n* 5 Yıllık Gelecek Planı\n* Ar-Ge ve Tasarım\n* 12 Aylık Yol Haritası")
-    st.divider()
-    st.error("⚠️ **SORUMLULUK REDDİ:**\nÜretilen raporlar yapay zeka çıktısıdır. Kesin yatırım tavsiyesi değildir.")
+    st.title("🛡️ Yasal Zırh & Bilgi")
+    st.error("⚠️ **SORUMLULUK REDDİ:** Yapay zeka çıktıları yatırım tavsiyesi değildir. Veriler ticari öngörü amaçlıdır.")
     st.write("---")
-    st.caption("Destek hattı: Sipariş numaranızla mail üzerinden ulaşın.")
+    st.info("💎 **VIP Rapor Özellikleri:**\n* 10.000 Kelimelik Teknik Analiz\n* 12 Aylık ROI Planı\n* Mühendislik & Ar-Ge Desteği")
+    st.write("---")
+    st.caption("📩 Destek için Sipariş No ile iletişime geçin.")
 
 # =========================
-# ANA EKRAN
+# ANA EKRAN TASARIMI
 # =========================
 st.title("📈 Profesyonel AI Strateji Motoru")
-st.markdown("##### Müşteri Geri Bildirimlerinden 10.000 Kelimelik Dev İş Planları")
+st.markdown("#### Müşteri Geri Bildirimlerinden 10.000 Kelimelik Dev İş Planları")
 
-user_input = st.text_area("Analiz edilecek yorumları veya verileri buraya girin:", height=250, placeholder="Verilerinizi buraya yapıştırın...")
+user_input = st.text_area("Analiz edilecek yorumları veya işletme verilerini buraya girin:", height=200)
 
 col1, col2 = st.columns(2)
+
+# --- ÜCRETSİZ HIZLI ANALİZ ---
 with col1:
     if st.button("🔍 Ücretsiz Hızlı Analiz"):
         if user_input:
             with st.spinner('Özetleniyor...'):
-                res = client.chat.completions.create(model="llama-3.3-70b-versatile", messages=[{"role": "user", "content": f"Ozetle ve puan ver: {user_input[:2000]}"}])
+                res = client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=[{"role": "user", "content": f"Şu veriyi profesyonelce özetle ve 0-100 arası skor ver: {user_input[:2000]}"}],
+                    temperature=0.3
+                )
                 st.success("📊 Hızlı Analiz Sonucu")
                 st.write(res.choices[0].message.content)
-        else: st.warning("Veri girilmedi.")
+        else: st.warning("Analiz için veri girin.")
 
+# --- VIP RAPOR LINKI ---
 with col2:
-    st.link_button("💎 VIP: 10.000 Kelimelik Rapor Al (50 TL)", "https://www.shopier.com/SAYFA_LINKIN")
+    st.link_button("💎 VIP: Dev Rapor Satın Al (50 TL)", "https://www.shopier.com/SAYFA_LINKIN")
 
 st.write("---")
-st.subheader("🔑 VIP Rapor Üretim ve Teslimat")
-st.markdown("> **Not:** VIP rapor 5 parça halinde üretilir ve yaklaşık 2 dakika sürer.")
+st.subheader("🔑 VIP Rapor Hazırlama Paneli")
+st.write("Shopier'dan aldığınız sipariş numarasını ve raporun gideceği maili aşağıya girin.")
 
-ord_no = st.text_input("Shopier Sipariş No (8 Haneli):")
-e_mail = st.text_input("Raporun Gönderileceği E-posta Adresi:")
-confirm = st.checkbox("10.000 kelimelik analiz raporunun iadesiz olduğunu onaylıyorum.")
+order_no = st.text_input("Shopier Sipariş No:")
+email_input = st.text_input("Raporun Gönderileceği E-posta Adresi:")
+accept = st.checkbox("10.000 kelimelik dev raporun iadesiz olduğunu ve teknik analiz niteliğinde olduğunu onaylıyorum.")
 
-if st.button("🚀 VIP Raporu İnşa Et ve Mail Gönder"):
-    if user_input and ord_no and e_mail and confirm:
-        st.warning("⚠️ İşlem başladı. Lütfen tarayıcıyı kapatmayın. Raporunuz hazırlanıyor...")
+# --- VIP ÜRETİM BUTONU ---
+if st.button("🚀 VIP Raporu Şimdi İnşa Et ve Mail At"):
+    if not user_input or not order_no or not accept or not email_input:
+        st.error("Eksik bilgi: Veri, Sipariş No, Onay veya E-posta eksik.")
+    elif not order_no.isdigit() or len(order_no) < 8:
+        st.error("Geçersiz sipariş numarası formatı.")
+    else:
+        st.warning("⚙️ Dev rapor parçalar halinde üretiliyor. Bu işlem yaklaşık 1-2 dakika sürer. Lütfen bekleyin...")
         tarih = datetime.now().strftime("%d/%m/%Y")
         
-        full_report = ""
+        report = ""
         sections = [
-            ("1. ÜRETİM HATALARI VE MÜHENDİSLİK", "Teknik kusurlar üzerine 2000 kelime akademik analiz."),
-            ("2. STRATEJİK FİYATLANDIRMA", "Pazar konumu üzerine 2000 kelime finansal analiz."),
-            ("3. SEKTÖREL GELECEK PROJEKSİYONU", "Trendler üzerine 2000 kelime gelecek analizi."),
-            ("4. ENDÜSTRİYEL TASARIM VE AR-GE", "İnovasyon üzerine 2000 kelime tasarım analizi."),
-            ("5. 12 AYLIK KURUMSAL YOL HARİTASI", "ROI ve KPI odaklı 2000 kelime uygulama planı.")
+            ("1. MÜHENDİSLİK VE TEKNİK ANALİZ", "İşletme kusurları ve teknik çözüm önerileri üzerine 2000 kelime."),
+            ("2. STRATEJİK FİYATLANDIRMA VE KONUMLAMA", "Premium algı ve pazar rekabeti üzerine 2000 kelime."),
+            ("3. SEKTÖREL GELECEK VE TRENDLER", "Gelecek 5 yılın pazar öngörüleri üzerine 2000 kelime."),
+            ("4. AR-GE, İNOVASYON VE AMBALAJ", "Teknik inovasyon ve tasarım önerileri üzerine 2000 kelime."),
+            ("5. 12 AYLIK STRATEJİK YOL HARİTASI", "ROI odaklı uygulama ve büyüme planı üzerine 2000 kelime.")
         ]
-        
-        bar = st.progress(0)
-        for i, (t, task) in enumerate(sections):
-            prompt = f"Turkiye Turkcesi kullan. Teknik yaz. {t} icin {task}. Veri: {user_input[:5000]}"
-            res = client.chat.completions.create(model="llama-3.3-70b-versatile", messages=[{"role": "user", "content": prompt}], temperature=0.4, max_tokens=3000)
-            full_report += "\n\n" + res.choices[0].message.content
-            bar.progress((i + 1) / len(sections))
-            
-        pdf_out = create_pdf(full_report, ord_no, tarih)
-        st.success("✅ Rapor Hazırlandı!")
-        
-        if send_email(pdf_out, e_mail, ord_no):
-            st.success(f"📧 Raporunuz {e_mail} adresine PDF olarak başarıyla gönderildi!")
-        else:
-            st.error("❌ Mail gönderiminde hata oluştu. Lütfen PDF'i manuel indirin.")
-        
-        st.download_button("📂 PDF Olarak İndir", pdf_out, file_name=f"VIP_Rapor_{ord_no}.pdf")
-    else:
-        st.error("Lütfen tüm alanları (Yorum, Sipariş No, Mail ve Onay) doldurun.")
 
-st.caption("© 2026 AI Analiz SaaS | Global Professional Edition")
+        progress = st.progress(0)
+        for i, (sec_title, sec_task) in enumerate(sections):
+            prompt = f"%100 Saf Türkiye Türkçesi. Teknik üslup. {sec_title} için {sec_task}. Veriler: {user_input[:5000]}"
+            res = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.4,
+                max_tokens=3000
+            )
+            report += f"\n\n{res.choices[0].message.content}"
+            progress.progress((i + 1) / len(sections))
+
+        st.success("✅ 10.000 Kelimelik VIP Rapor Hazır!")
+        
+        # PDF OLUŞTUR
+        pdf_buf = create_pdf(report, order_no, tarih)
+        
+        # MAIL GÖNDER
+        if send_email(pdf_buf, email_input, order_no):
+            st.success(f"📧 Raporunuz başarıyla {email_input} adresine gönderildi!")
+        else:
+            st.error("❌ E-posta gönderilemedi. Lütfen PDF'i aşağıdaki butondan manuel indirin.")
+            
+        st.download_button("📂 PDF Raporu İndir", pdf_buf, file_name=f"VIP_Rapor_{order_no}.pdf")
+
+st.caption("© 2026 AI Analiz SaaS | Professional Edition")
