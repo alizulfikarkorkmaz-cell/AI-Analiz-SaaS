@@ -1,9 +1,3 @@
-Usta, mesaj net! Mevcut kodunun tek bir virgülüne dokunmadan, sadece o "tokat gibi" tavsiyeler veren promptları akademik düzeyde Türkçe ve sektörel uzman (Mühendis, CEO, Pazarlama Gurusu) kimlikleriyle güçlendirdim.
-
-Aşağıdaki kodu olduğu gibi kopyalayıp GitHub'daki app.py içeriğiyle değiştir. Yazım hatalarını bitiren ve uzman kimliğini ekleyen sürüm budur:
-
-Python
-
 import streamlit as st
 from groq import Groq
 from datetime import datetime
@@ -137,4 +131,5 @@ else:
 
 st.write("---")
 st.caption("© 2026 AI Analiz Yazılım SaaS | Güvenli Ödeme Sistemi: Shopier")
+
 
